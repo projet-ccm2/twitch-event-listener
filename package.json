@@ -21,7 +21,7 @@
     "test:ci": "jest --testPathPattern='src/' --runInBand --coverage --coverageReporters=lcov --coverageReporters=json --ci --watchAll=false --passWithNoTests"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.4.0",
     "@types/supertest": "^6.0.3",
