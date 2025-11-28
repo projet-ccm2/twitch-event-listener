@@ -22,6 +22,7 @@
     "@types/express": "^5.0.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.4.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.43.0",
     "@typescript-eslint/parser": "^8.43.0",
     "eslint": "^9.35.0",
@@ -36,6 +37,7 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "ws": "^8.18.3"
   }
 }
