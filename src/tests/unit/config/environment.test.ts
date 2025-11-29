@@ -14,23 +14,19 @@ describe("Environment Configuration", () => {
     it("should use default values when optional env vars are not set", () => {
       delete process.env.PORT;
       delete process.env.NODE_ENV;
-      delete process.env.ALLOWED_ORIGINS;
+      delete process.env.CORS_ALLOWED_ORIGINS;
 
       const { config } = require("../../../config/environment");
 
       expect(config.port).toBe(3000);
       expect(config.nodeEnv).toBe("development");
-      expect(config.cors.allowedOrigins).toEqual([
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "null",
-      ]);
+      expect(config.cors.allowedOrigins).toEqual(["*"]);
     });
 
     it("should use provided environment variables", () => {
       process.env.PORT = "8080";
       process.env.NODE_ENV = "production";
-      process.env.ALLOWED_ORIGINS = "https://example.com,https://test.com";
+      process.env.CORS_ALLOWED_ORIGINS = "https://example.com,https://test.com";
 
       const { config } = require("../../../config/environment");
 
@@ -51,20 +47,16 @@ describe("Environment Configuration", () => {
       expect(typeof config.port).toBe("number");
     });
 
-    it("should handle empty ALLOWED_ORIGINS", () => {
-      process.env.ALLOWED_ORIGINS = "";
+    it("should handle empty CORS_ALLOWED_ORIGINS", () => {
+      process.env.CORS_ALLOWED_ORIGINS = "";
 
       const { config } = require("../../../config/environment");
 
-      expect(config.cors.allowedOrigins).toEqual([
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "null",
-      ]);
+      expect(config.cors.allowedOrigins).toEqual(["*"]);
     });
 
     it("should handle single allowed origin", () => {
-      process.env.ALLOWED_ORIGINS = "https://single-origin.com";
+      process.env.CORS_ALLOWED_ORIGINS = "https://single-origin.com";
 
       const { config } = require("../../../config/environment");
 

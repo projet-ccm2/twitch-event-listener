@@ -73,7 +73,9 @@ if (useMock) {
     service: "twitch-notification-handler",
   });
   mockService = new TwitchService();
-  mockService.start();
+  if (envConfig.nodeEnv !== "test") {
+    mockService.start();
+  }
 } else {
   logger.info("Starting in REAL EventSub mode", {
     environment: envConfig.nodeEnv,
@@ -83,7 +85,9 @@ if (useMock) {
 
   const ircService = new IrcService();
 
-  ircService.connect();
+  if (envConfig.nodeEnv !== "test") {
+    ircService.connect();
+  }
 
   if (envConfig.nodeEnv === "production") {
     const schedulerService = new SchedulerService(eventSubService, ircService);
