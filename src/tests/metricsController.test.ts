@@ -13,7 +13,11 @@ jest.mock("../services/metricsService", () => ({
   },
 }));
 
-import { getAllMetrics, getChannelMetrics, getUserMetrics } from "../controllers/metricsController";
+import {
+  getAllMetrics,
+  getChannelMetrics,
+  getUserMetrics,
+} from "../controllers/metricsController";
 
 const mockRes = () => {
   const res: Partial<Response> = {};
@@ -56,7 +60,10 @@ describe("metricsController", () => {
 
   test("getUserMetrics validates params", () => {
     const res = mockRes();
-    getUserMetrics({ params: { channelId: undefined, userId: undefined } } as any, res);
+    getUserMetrics(
+      { params: { channelId: undefined, userId: undefined } } as any,
+      res,
+    );
     expect(res.status).toHaveBeenCalledWith(400);
   });
 

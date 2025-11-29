@@ -47,7 +47,9 @@ describe("IngestService", () => {
 
   test("errors are logged when dispatch throws", async () => {
     const { logger } = await import("../utils/logger");
-    const errSpy = jest.spyOn(logger, "error").mockImplementation(() => undefined as any);
+    const errSpy = jest
+      .spyOn(logger, "error")
+      .mockImplementation(() => undefined as any);
     const fakeDispatcher: Pick<DispatcherService, "dispatch"> = {
       dispatch: jest.fn(async () => {
         throw new Error("boom");
