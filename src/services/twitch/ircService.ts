@@ -74,28 +74,29 @@ export class IrcService {
             }
 
             if (line.includes('PRIVMSG')) {
-                const parts = line.split(' ');
-                const channel = parts[2];
-                const messageContent = parts.slice(3).join(' ').substring(1);
+                // Example: :user!user@user.tmi.twitch.tv PRIVMSG #channel :message content here
+                const match = line.match(/^:([^!]+)![^ ]+ PRIVMSG #([^ ]+) :(.*)$/);
+                if (match) {
+                    const userLogin = match[1];
+                    const channel = match[2];
+                    const messageContent = match[3];
 
-                const userPart = parts[0].split('!')[0];
-                const userLogin = userPart.substring(1);
+                    const event = {
+                        id: secureId(),
+                        source: 'irc',
+                        type: 'message',
+                        channelLogin: channel,
+                        userLogin: userLogin,
+                        timestamp: new Date().toISOString(),
+                        version: '1.0',
+                        payload: {
+                            message: messageContent,
+                            raw: line,
+                        },
+                    };
 
-                const event = {
-                    id: secureId(),
-                    source: 'irc',
-                    type: 'message',
-                    channelLogin: channel.replace('#', ''),
-                    userLogin: userLogin,
-                    timestamp: new Date().toISOString(),
-                    version: '1.0',
-                    payload: {
-                        message: messageContent,
-                        raw: line,
-                    },
-                };
-
-                this.bufferMessage(event);
+                    this.bufferMessage(event);
+                }
             }
         }
     }
