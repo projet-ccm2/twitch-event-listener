@@ -3,8 +3,12 @@ import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import prettierPlugin from "eslint-plugin-prettier";
 import jsdocPlugin from "eslint-plugin-jsdoc";
+import globals from "globals";
 
 export default [
+  {
+    ignores: ["dist/**"],
+  },
   js.configs.recommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -13,6 +17,10 @@ export default [
       parserOptions: {
         ecmaVersion: 2021,
         sourceType: "module",
+      },
+      globals: {
+        ...globals.node,
+        ...globals.jest,
       },
     },
     plugins: {

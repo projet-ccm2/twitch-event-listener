@@ -7,20 +7,20 @@ describe("IrcService", () => {
     const original = [...config.channels];
     config.channels = [
       {
-        twitch_user_id: "1",
+        twitchUserId: "1",
         login: "joinme",
         scopes: [],
-        listen_eventsub: false,
-        listen_chat_irc: true,
-        eventsub_topics: [],
+        listenEventSub: false,
+        listenChatIrc: true,
+        eventSubTopics: [],
       },
       {
-        twitch_user_id: "2",
+        twitchUserId: "2",
         login: "skipme",
         scopes: [],
-        listen_eventsub: false,
-        listen_chat_irc: false,
-        eventsub_topics: [],
+        listenEventSub: false,
+        listenChatIrc: false,
+        eventSubTopics: [],
       },
     ] as any;
 

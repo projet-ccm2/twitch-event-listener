@@ -14,24 +14,24 @@ export function createAdminRouter(eventSubService: EventSubService) {
       if (!body || typeof body !== "object") {
         return res.status(400).json({ error: "Invalid request body" });
       }
-      const { twitch_user_id, login } = body;
-      if (!twitch_user_id || !login) {
+      const { twitchUserId, login } = body;
+      if (!twitchUserId || !login) {
         return res
           .status(400)
-          .json({ error: "twitch_user_id and login are required" });
+          .json({ error: "twitchUserId and login are required" });
       }
       const newChannel: ChannelConfig = {
-        twitch_user_id: twitch_user_id,
+        twitchUserId: twitchUserId,
         login: login,
         scopes: body.scopes || [],
-        listen_eventsub:
-          body.listen_eventsub !== undefined ? !!body.listen_eventsub : true,
-        listen_chat_irc:
-          body.listen_chat_irc !== undefined ? !!body.listen_chat_irc : false,
-        eventsub_topics: body.eventsub_topics || [],
+        listenEventSub:
+          body.listenEventSub !== undefined ? !!body.listenEventSub : true,
+        listenChatIrc:
+          body.listenChatIrc !== undefined ? !!body.listenChatIrc : false,
+        eventSubTopics: body.eventSubTopics || [],
       };
       appConfig.channels.push(newChannel);
-      if (!envConfig.useMock && newChannel.listen_eventsub) {
+      if (!envConfig.useMock && newChannel.listenEventSub) {
         await eventSubService.subscribeChannel(newChannel);
       }
       return res.status(201).json({ status: "channel added" });

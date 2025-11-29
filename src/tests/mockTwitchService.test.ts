@@ -18,12 +18,12 @@ describe("TwitchService mock generator", () => {
     handleEventMock.mockClear();
     config.channels = [
       {
-        twitch_user_id: "abc",
+        twitchUserId: "abc",
         login: "chan",
         scopes: [],
-        listen_eventsub: true,
-        listen_chat_irc: true,
-        eventsub_topics: ["stream.online"],
+        listenEventSub: true,
+        listenChatIrc: true,
+        eventSubTopics: ["stream.online"],
       },
     ] as any;
     (config as any).eventFrequencyMs = 5;

@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+import { ChannelConfig } from "../../models/channel";
 import { config } from "../../config/config";
 import { IngestService } from "../ingestService";
 import { logger } from "../../utils/logger";
@@ -59,7 +61,7 @@ export class TwitchService {
       case "message":
         eventData.source = "irc";
         eventData.event = {
-          broadcaster_user_id: channel.twitch_user_id,
+          broadcaster_user_id: channel.twitchUserId,
           broadcaster_user_login: channel.login,
           user_login: "mock_user_" + secureRandomInt(100),
           message: {
@@ -72,7 +74,7 @@ export class TwitchService {
         eventData.source = "eventsub";
         eventData.subscription = { type: "channel.follow" };
         eventData.event = {
-          broadcaster_user_id: channel.twitch_user_id,
+          broadcaster_user_id: channel.twitchUserId,
           broadcaster_user_login: channel.login,
           user_id: "12345",
           user_login: "mock_follower",
@@ -83,7 +85,7 @@ export class TwitchService {
         eventData.source = "eventsub";
         eventData.subscription = { type: "channel.subscribe" };
         eventData.event = {
-          broadcaster_user_id: channel.twitch_user_id,
+          broadcaster_user_id: channel.twitchUserId,
           broadcaster_user_login: channel.login,
           user_id: "67890",
           user_login: "mock_subscriber",
@@ -95,7 +97,7 @@ export class TwitchService {
         eventData.source = "eventsub";
         eventData.subscription = { type: "channel.cheer" };
         eventData.event = {
-          broadcaster_user_id: channel.twitch_user_id,
+          broadcaster_user_id: channel.twitchUserId,
           broadcaster_user_login: channel.login,
           user_id: "11223",
           user_login: "mock_cheerer",
@@ -107,7 +109,7 @@ export class TwitchService {
         eventData.source = "eventsub";
         eventData.subscription = { type: "channel.raid" };
         eventData.event = {
-          to_broadcaster_user_id: channel.twitch_user_id,
+          to_broadcaster_user_id: channel.twitchUserId,
           to_broadcaster_user_login: channel.login,
           from_broadcaster_user_id: "99887",
           from_broadcaster_user_login: "raiding_channel",
@@ -120,7 +122,7 @@ export class TwitchService {
           type: "channel.channel_points_custom_reward_redemption.add",
         };
         eventData.event = {
-          broadcaster_user_id: channel.twitch_user_id,
+          broadcaster_user_id: channel.twitchUserId,
           broadcaster_user_login: channel.login,
           user_id: "44556",
           user_login: "redeemer",

@@ -1,11 +1,11 @@
 [
   {
-    "twitch_user_id": "141512329",
+    "twitchUserId": "141512329",
     "login": "impolios",
     "scopes": ["channel:read:subscriptions", "bits:read"],
-    "listen_eventsub": true,
-    "listen_chat_irc": true,
-    "eventsub_topics": [
+    "listenEventsub": true,
+    "listenChatIrc": true,
+    "eventSubTopics": [
       "stream.online",
       "stream.offline",
       "channel.follow",

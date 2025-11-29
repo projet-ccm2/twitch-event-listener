@@ -1,6 +1,7 @@
 import { config } from "../../config/config";
 import { config as envConfig } from "../../config/environment";
 import { ChannelConfig } from "../../models/channel";
+/* eslint-disable camelcase */
 import { logger } from "../../utils/logger";
 import { IngestService } from "../ingestService";
 import crypto from "crypto";
@@ -17,14 +18,14 @@ export class EventSubService {
   public async subscribeAll() {
     const channels = config.channels;
     for (const channel of channels) {
-      if (channel.listen_eventsub) {
+      if (channel.listenEventSub) {
         await this.subscribeChannel(channel);
       }
     }
   }
 
   public async subscribeChannel(channel: ChannelConfig) {
-    const topics = channel.eventsub_topics || [];
+    const topics = channel.eventSubTopics || [];
     for (const topicConfig of topics) {
       await this.subscribeToTopic(
         channel,
@@ -157,19 +158,19 @@ export class EventSubService {
       if (topicName === "channel.follow") {
         version = "2";
         condition = {
-          broadcaster_user_id: channel.twitch_user_id,
-          moderator_user_id: channel.twitch_user_id,
+          broadcaster_user_id: channel.twitchUserId,
+          moderator_user_id: channel.twitchUserId,
         };
       } else if (topicName === "channel.subscribe") {
-        condition = { broadcaster_user_id: channel.twitch_user_id };
+        condition = { broadcaster_user_id: channel.twitchUserId };
       } else {
-        condition = { broadcaster_user_id: channel.twitch_user_id };
+        condition = { broadcaster_user_id: channel.twitchUserId };
       }
     } else {
       topicName = topicConfig.name;
       version = topicConfig.version || "1";
       condition = topicConfig.condition || {
-        broadcaster_user_id: channel.twitch_user_id,
+        broadcaster_user_id: channel.twitchUserId,
       };
     }
 

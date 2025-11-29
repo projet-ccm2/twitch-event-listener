@@ -43,10 +43,10 @@ describe("createAdminRouter", () => {
     await handler(
       {
         body: {
-          twitch_user_id: "123",
+          twitchUserId: "123",
           login: "newchan",
-          listen_eventsub: true,
-          listen_chat_irc: false,
+          listenEventSub: true,
+          listenChatIrc: false,
         },
       } as any,
       res,
@@ -67,10 +67,10 @@ describe("createAdminRouter", () => {
     await handler(
       {
         body: {
-          twitch_user_id: "999",
+          twitchUserId: "999",
           login: "nosub",
-          listen_eventsub: false,
-          listen_chat_irc: true,
+          listenEventSub: false,
+          listenChatIrc: true,
         },
       } as any,
       res,

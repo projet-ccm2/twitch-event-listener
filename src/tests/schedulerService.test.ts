@@ -26,12 +26,12 @@ describe("SchedulerService", () => {
   test("start schedules sync and calls services on success", async () => {
     const channels: ChannelConfig[] = [
       {
-        twitch_user_id: "1",
+        twitchUserId: "1",
         login: "chan1",
         scopes: [],
-        listen_eventsub: true,
-        listen_chat_irc: true,
-        eventsub_topics: ["stream.online"],
+        listenEventSub: true,
+        listenChatIrc: true,
+        eventSubTopics: ["stream.online"],
       },
     ];
     fetchMock.mockResolvedValue({ ok: true, json: async () => channels });

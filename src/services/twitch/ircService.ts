@@ -69,7 +69,7 @@ export class IrcService {
 
     const channels = config.channels;
     for (const channel of channels) {
-      if (channel.listen_chat_irc && !this.joinedChannels.has(channel.login)) {
+      if (channel.listenChatIrc && !this.joinedChannels.has(channel.login)) {
         this.ws.send(`JOIN #${channel.login}`);
         this.joinedChannels.add(channel.login);
         logger.info(`Joined IRC channel #${channel.login}`, {

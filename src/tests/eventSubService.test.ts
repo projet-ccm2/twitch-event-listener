@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import crypto from "crypto";
 
 // Mock IngestService so EventSubService will use it

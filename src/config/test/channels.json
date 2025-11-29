@@ -1,10 +1,10 @@
 [
   {
-    "twitch_user_id": "test-user",
-    "login": "test-channel",
-    "scopes": [],
-    "listen_eventsub": true,
-    "listen_chat_irc": true,
-    "eventsub_topics": ["stream.online"]
+    "twitchUserId": "test-user",
+    "broadcaster_type": "partner",
+    "media_offline_image_url": "",
+    "tags": [],
+    "is_live": false,
+    "eventSubTopics": ["stream.online"]
   }
 ]
