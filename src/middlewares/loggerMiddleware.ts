@@ -4,9 +4,17 @@ import { logger } from '../utils/logger';
 
 export const loggerMiddleware = (
     req: Request,
-    _res: Response,
+    res: Response,
     next: NextFunction
 ) => {
-    logger.info(`${req.method} ${req.url}`);
+    const start = process.hrtime();
+
+    res.on('finish', () => {
+        const diff = process.hrtime(start);
+        const duration = (diff[0] * 1e3 + diff[1] / 1e6).toFixed(2); // ms
+        logger.info(
+            `${req.method} ${req.url} ${res.statusCode} - ${duration} ms`
+        );
+    });
     next();
 };
