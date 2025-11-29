@@ -26,5 +26,7 @@ import path from "path";
         process.env[key] = value;
       }
     });
-  } catch {}
+  } catch {
+    return;
+  }
 })();
