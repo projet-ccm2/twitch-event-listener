@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import { config } from '../../config/config';
 import { IngestService } from '../ingestService';
 import { logger } from '../../utils/logger';
+import { secureId } from '../../utils/random';
 
 export class IrcService {
     private ws: WebSocket | null = null;
@@ -81,7 +82,7 @@ export class IrcService {
                 const userLogin = userPart.substring(1);
 
                 const event = {
-                    id: Date.now().toString() + Math.random().toString(),
+                    id: secureId(),
                     source: 'irc',
                     type: 'message',
                     channelLogin: channel.replace('#', ''),
