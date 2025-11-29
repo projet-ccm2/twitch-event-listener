@@ -87,7 +87,7 @@ if (useMock) {
 
     if (envConfig.nodeEnv === 'production') {
         const schedulerService = new SchedulerService(eventSubService, ircService);
-        schedulerService.start();
+        void schedulerService.start();
     }
 
     app.use(createWebhookRouter(eventSubService));
