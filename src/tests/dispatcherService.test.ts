@@ -75,7 +75,9 @@ describe("DispatcherService", () => {
     const { DispatcherService } = await loadDispatcher();
     const { logger } = await import("../utils/logger");
     jest.spyOn(logger, "warn").mockImplementation(() => undefined as any);
-    const errSpy = jest.spyOn(logger, "error").mockImplementation(() => undefined as any);
+    const errSpy = jest
+      .spyOn(logger, "error")
+      .mockImplementation(() => undefined as any);
 
     fetchMock.mockResolvedValue({ ok: false, status: 500 });
 

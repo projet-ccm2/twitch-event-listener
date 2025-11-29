@@ -63,7 +63,9 @@ describe("IrcService message buffering", () => {
       },
     }));
 
-    const { IrcService: IrcSvc } = await import("../services/twitch/ircService");
+    const { IrcService: IrcSvc } = await import(
+      "../services/twitch/ircService"
+    );
     const { config: cfg } = await import("../config/config");
     (cfg as any).chatBufferTime = 10;
 

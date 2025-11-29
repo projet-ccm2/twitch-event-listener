@@ -35,21 +35,27 @@ describe("EventSubService webhook handling", () => {
 
   test("verifies signature and processes notification", async () => {
     const svc = new EventSubService();
-    const body = { subscription: { id: "sub1", type: "channel.follow" }, event: { id: "e1", broadcaster_user_id: "c1" } };
+    const body = {
+      subscription: { id: "sub1", type: "channel.follow" },
+      event: { id: "e1", broadcaster_user_id: "c1" },
+    };
     const bodyStr = JSON.stringify(body);
     const messageId = "mid";
     const timestamp = "123456";
     const hmac = crypto.createHmac("sha256", envConfig.twitch.webhookSecret);
-    const sig = "sha256=" + hmac.update(messageId + timestamp + bodyStr).digest("hex");
+    const sig =
+      "sha256=" + hmac.update(messageId + timestamp + bodyStr).digest("hex");
 
     const req: any = {
       header: (name: string) =>
-        ({
-          "Twitch-Eventsub-Message-Id": messageId,
-          "Twitch-Eventsub-Message-Timestamp": timestamp,
-          "Twitch-Eventsub-Message-Signature": sig,
-          "Twitch-Eventsub-Message-Type": "notification",
-        } as any)[name],
+        (
+          ({
+            "Twitch-Eventsub-Message-Id": messageId,
+            "Twitch-Eventsub-Message-Timestamp": timestamp,
+            "Twitch-Eventsub-Message-Signature": sig,
+            "Twitch-Eventsub-Message-Type": "notification",
+          }) as any
+        )[name],
       rawBody: Buffer.from(bodyStr, "utf8"),
     };
     const res = mockRes();
@@ -65,16 +71,22 @@ describe("EventSubService webhook handling", () => {
     const messageId = "mid2";
     const timestamp = "654321";
     const sig =
-      "sha256=" + crypto.createHmac("sha256", envConfig.twitch.webhookSecret).update(messageId + timestamp + bodyStr).digest("hex");
+      "sha256=" +
+      crypto
+        .createHmac("sha256", envConfig.twitch.webhookSecret)
+        .update(messageId + timestamp + bodyStr)
+        .digest("hex");
 
     const req: any = {
       header: (name: string) =>
-        ({
-          "Twitch-Eventsub-Message-Id": messageId,
-          "Twitch-Eventsub-Message-Timestamp": timestamp,
-          "Twitch-Eventsub-Message-Signature": sig,
-          "Twitch-Eventsub-Message-Type": "webhook_callback_verification",
-        } as any)[name],
+        (
+          ({
+            "Twitch-Eventsub-Message-Id": messageId,
+            "Twitch-Eventsub-Message-Timestamp": timestamp,
+            "Twitch-Eventsub-Message-Signature": sig,
+            "Twitch-Eventsub-Message-Type": "webhook_callback_verification",
+          }) as any
+        )[name],
       rawBody: Buffer.from(bodyStr, "utf8"),
     };
     const res = mockRes();
@@ -89,15 +101,21 @@ describe("EventSubService webhook handling", () => {
     const messageId = "mid3";
     const timestamp = "111";
     const sig =
-      "sha256=" + crypto.createHmac("sha256", envConfig.twitch.webhookSecret).update(messageId + timestamp + bodyStr).digest("hex");
+      "sha256=" +
+      crypto
+        .createHmac("sha256", envConfig.twitch.webhookSecret)
+        .update(messageId + timestamp + bodyStr)
+        .digest("hex");
     const req: any = {
       header: (name: string) =>
-        ({
-          "Twitch-Eventsub-Message-Id": messageId,
-          "Twitch-Eventsub-Message-Timestamp": timestamp,
-          "Twitch-Eventsub-Message-Signature": sig,
-          "Twitch-Eventsub-Message-Type": "revocation",
-        } as any)[name],
+        (
+          ({
+            "Twitch-Eventsub-Message-Id": messageId,
+            "Twitch-Eventsub-Message-Timestamp": timestamp,
+            "Twitch-Eventsub-Message-Signature": sig,
+            "Twitch-Eventsub-Message-Type": "revocation",
+          }) as any
+        )[name],
       rawBody: Buffer.from(bodyStr, "utf8"),
     };
     const res = mockRes();
@@ -110,12 +128,14 @@ describe("EventSubService webhook handling", () => {
     const svc = new EventSubService();
     const req: any = {
       header: (name: string) =>
-        ({
-          "Twitch-Eventsub-Message-Id": "a",
-          "Twitch-Eventsub-Message-Timestamp": "b",
-          "Twitch-Eventsub-Message-Signature": "sha256=deadbeef",
-          "Twitch-Eventsub-Message-Type": "notification",
-        } as any)[name],
+        (
+          ({
+            "Twitch-Eventsub-Message-Id": "a",
+            "Twitch-Eventsub-Message-Timestamp": "b",
+            "Twitch-Eventsub-Message-Signature": "sha256=deadbeef",
+            "Twitch-Eventsub-Message-Type": "notification",
+          }) as any
+        )[name],
       rawBody: Buffer.from("{}", "utf8"),
     };
     const res = mockRes();
