@@ -16,7 +16,8 @@
     "start": "node dist/index.js",
     "prettier": "npx prettier . --write",
     "test:dev": "npm run prettier && npm run migrate:dev && jest --runInBand --coverage",
-    "test": "jest --runInBand --coverage"
+    "test": "jest --runInBand --coverage",
+    "migrate:dev": "echo \"No migration script defined\""
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
