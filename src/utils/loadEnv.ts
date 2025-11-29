@@ -1,14 +1,4 @@
-/*
- * Simple `.env` loader for environments without external dependencies.
- *
- * This module reads a `.env` file from the current working directory and
- * populates `process.env` with variables defined in it. Lines starting
- * with `#` are treated as comments and ignored. Keys that already exist
- * in `process.env` are not overwritten. Quotes around values are stripped.
- *
- * It is imported at the top of `src/index.ts` so that configuration from
- * `.env` is available immediately when the app starts.
- */
+
 
 import fs from 'fs';
 import path from 'path';
@@ -39,6 +29,6 @@ import path from 'path';
             }
         });
     } catch {
-        // Silently ignore any errors reading the .env file.
+
     }
 })();
