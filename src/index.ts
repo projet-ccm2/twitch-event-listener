@@ -17,9 +17,26 @@ const app = express();
 
 app.disable('x-powered-by');
 
+// Helper to validate that the origin is a well-formed URL with http(s) protocol
+function isValidOrigin(origin: string): boolean {
+    try {
+        const url = new URL(origin);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
 app.use((req, res, next) => {
     const origin = req.headers.origin as string | undefined;
-    if (origin && envConfig.cors.allowedOrigins.includes(origin)) {
+    const allowedOrigins = envConfig.cors.allowedOrigins;
+    if (allowedOrigins.includes('*')) {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    } else if (
+        origin &&
+        allowedOrigins.includes(origin) &&
+        isValidOrigin(origin)
+    ) {
         res.setHeader('Access-Control-Allow-Origin', origin);
     }
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
