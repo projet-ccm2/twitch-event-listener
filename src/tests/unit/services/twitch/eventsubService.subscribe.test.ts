@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 import { config } from "../../../../config/config";
 import { config as envConfig } from "../../../../config/environment";
