@@ -43,14 +43,16 @@ describe("IrcService", () => {
 
   test("updateSubscriptions does not join if already joined", () => {
     const original = [...config.channels];
-    config.channels = [{
-      twitchUserId: "1",
-      login: "joined",
-      scopes: [],
-      listenEventSub: false,
-      listenChatIrc: true,
-      eventSubTopics: [],
-    }] as any;
+    config.channels = [
+      {
+        twitchUserId: "1",
+        login: "joined",
+        scopes: [],
+        listenEventSub: false,
+        listenChatIrc: true,
+        eventSubTopics: [],
+      },
+    ] as any;
 
     const svc = new IrcService();
     const fakeWs: any = { readyState: 1, send: jest.fn() };
@@ -65,7 +67,7 @@ describe("IrcService", () => {
 });
 
 describe("IrcService message buffering", () => {
-  const handleBatchMock = jest.fn(async (_batch: any[]) => { });
+  const handleBatchMock = jest.fn(async (_batch: any[]) => {});
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -168,7 +170,9 @@ describe("IrcService connection and handling", () => {
       (call: any) => call[0] === "open",
     )[1];
 
-    const updateSpy = jest.spyOn(svc, "updateSubscriptions").mockImplementation();
+    const updateSpy = jest
+      .spyOn(svc, "updateSubscriptions")
+      .mockImplementation();
 
     openHandler();
 
