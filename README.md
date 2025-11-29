@@ -121,12 +121,12 @@ Modify `src/config/development/channels.json` to define which channels to listen
 ```json
 [
   {
-    "twitch_user_id": "12345678",
+    "twitchUserId": "12345678",
     "login": "streamer_name",
     "scopes": ["channel:read:subscriptions"],
-    "listen_eventsub": true,
-    "listen_chat_irc": true,
-    "eventsub_topics": ["stream.online", "stream.offline", "channel.follow"]
+    "listenEventSub": true,
+    "listenChatIrc": true,
+    "eventSubTopics": ["stream.online", "stream.offline", "channel.follow"]
   }
 ]
 ```
