@@ -26,7 +26,7 @@ export class IrcService {
     }
 
     logger.info("Connecting to Twitch IRC...", { service: "twitch-irc" });
-    this.ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
+    this.ws = this.createSocket("wss://irc-ws.chat.twitch.tv:443");
 
     this.ws.on("open", () => {
       logger.info("Connected to Twitch IRC", { service: "twitch-irc" });
@@ -138,5 +138,8 @@ export class IrcService {
       clearTimeout(this.bufferTimer);
       this.bufferTimer = null;
     }
+  }
+  protected createSocket(url: string): WebSocket {
+    return new WebSocket(url);
   }
 }
