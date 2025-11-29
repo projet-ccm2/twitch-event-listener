@@ -2,6 +2,7 @@ import { TwitchEvent } from "../models/event";
 import { config } from "../config/config";
 import { logger } from "../utils/logger";
 import { config as envConfig } from "../config/environment";
+import { secureRandomInt } from "../utils/random";
 
 export class DispatcherService {
   private dispatcherUrl: string;
@@ -17,7 +18,7 @@ export class DispatcherService {
     const maxAttempts = 5;
     // Add Full Jitter to avoid thundering herd problem
     const baseBackoffMs = 1000 * Math.pow(2, attempt - 1);
-    const backoffMs = Math.floor(Math.random() * baseBackoffMs);
+    const backoffMs = secureRandomInt(baseBackoffMs);
 
     if (envConfig.nodeEnv === "development") {
       if (Array.isArray(event)) {
