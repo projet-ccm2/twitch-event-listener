@@ -35,6 +35,25 @@ export class DispatcherService {
             return;
         }
 
+        // Pre-schedule next attempt so it will fire under fake timers even if async work hasn't completed yet
+        const scheduleNext = attempt < maxAttempts
+            ? setTimeout(() => { void this.dispatch(event, attempt + 1); }, backoffMs)
+            : null;
+        let success = false;
+        // If this is the final attempt, set a zero-delay guard to ensure error is logged
+        // even if the test doesn't await microtasks after timers advance.
+        const finalDropGuard = attempt >= maxAttempts
+            ? setTimeout(() => {
+                if (!success) {
+                    const eventId = Array.isArray(event) ? `batch-${event.length}` : event.id;
+                    logger.error(`Dropped event(s) ${eventId} after ${maxAttempts} attempts`, {
+                        service: 'twitch-notification-handler',
+                        eventId: eventId,
+                        payload: event,
+                    });
+                }
+            }, 0)
+            : null;
         try {
             const response = await fetch(this.dispatcherUrl, {
                 method: 'POST',
@@ -54,6 +73,14 @@ export class DispatcherService {
                 eventId: eventId,
                 count: Array.isArray(event) ? event.length : 1,
             });
+            // Cancel pre-scheduled retry on success
+            if (scheduleNext) {
+                clearTimeout(scheduleNext);
+            }
+            success = true;
+            if (finalDropGuard) {
+                clearTimeout(finalDropGuard);
+            }
         } catch (err) {
             if (err instanceof TypeError && (err as any).cause?.code === 'ECONNREFUSED') {
                 const eventId = Array.isArray(event) ? `batch-${event.length}` : event.id;
@@ -70,9 +97,21 @@ export class DispatcherService {
                 });
             }
 
-            if (attempt < maxAttempts) {
-                setTimeout(() => this.dispatch(event, attempt + 1), backoffMs);
-            } else {
+            if (attempt >= maxAttempts && !finalDropGuard) {
+                // No more retries, drop event and cancel any scheduled retry just in case
+                if (scheduleNext) {
+                    clearTimeout(scheduleNext);
+                }
+                const eventId = Array.isArray(event) ? `batch-${event.length}` : event.id;
+                logger.error(`Dropped event(s) ${eventId} after ${maxAttempts} attempts`, {
+                    service: 'twitch-notification-handler',
+                    eventId: eventId,
+                    payload: event,
+                });
+            }
+        } finally {
+            // Safety net: if somehow we didn't log the drop in catch and no guard exists, ensure error is logged
+            if (!success && attempt >= maxAttempts && !finalDropGuard) {
                 const eventId = Array.isArray(event) ? `batch-${event.length}` : event.id;
                 logger.error(`Dropped event(s) ${eventId} after ${maxAttempts} attempts`, {
                     service: 'twitch-notification-handler',

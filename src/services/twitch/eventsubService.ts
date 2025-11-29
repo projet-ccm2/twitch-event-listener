@@ -113,6 +113,10 @@ export class EventSubService {
         const message = messageId + timestamp + body;
         const hmac = crypto.createHmac('sha256', secret);
         const expectedSignature = 'sha256=' + hmac.update(message).digest('hex');
+        // Avoid RangeError from timingSafeEqual when lengths differ
+        if (signature.length !== expectedSignature.length) {
+            return false;
+        }
         return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
     }
 

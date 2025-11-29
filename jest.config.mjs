@@ -5,4 +5,6 @@ export default {
   transform: {
     "^.+\\.tsx?$": ["ts-jest", {}],
   },
+  testPathIgnorePatterns: ["/dist/"],
+  setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
 };
