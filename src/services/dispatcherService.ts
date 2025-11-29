@@ -12,7 +12,9 @@ export class DispatcherService {
 
     public async dispatch(event: TwitchEvent | TwitchEvent[], attempt: number = 1): Promise<void> {
         const maxAttempts = 5;
-        const backoffMs = 1000 * Math.pow(2, attempt - 1);
+        // Add Full Jitter to avoid thundering herd problem
+        const baseBackoffMs = 1000 * Math.pow(2, attempt - 1);
+        const backoffMs = Math.floor(Math.random() * baseBackoffMs);
 
         if (envConfig.nodeEnv === 'development') {
             if (Array.isArray(event)) {
