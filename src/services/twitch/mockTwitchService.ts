@@ -1,6 +1,7 @@
 import { config } from '../../config/config';
 import { IngestService } from '../ingestService';
 import { logger } from '../../utils/logger';
+import { secureId, secureRandomInt } from '../../utils/random';
 
 export class TwitchService {
     private ingestService: IngestService;
@@ -35,12 +36,12 @@ export class TwitchService {
         const channels = config.channels;
         if (channels.length === 0) return;
 
-        const channel = channels[Math.floor(Math.random() * channels.length)];
+        const channel = channels[secureRandomInt(channels.length)];
         const eventTypes = ['message', 'follow', 'subscribe', 'cheer', 'raid', 'channel_points_redemption'];
-        const type = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+        const type = eventTypes[secureRandomInt(eventTypes.length)];
 
         const eventData: any = {
-            id: Math.random().toString(36).substring(7),
+            id: secureId(),
             timestamp: new Date().toISOString(),
             source: 'mock',
             type: type,
@@ -53,8 +54,8 @@ export class TwitchService {
                 eventData.event = {
                     broadcaster_user_id: channel.twitch_user_id,
                     broadcaster_user_login: channel.login,
-                    user_login: 'mock_user_' + Math.floor(Math.random() * 100),
-                    message: { text: 'This is a mock message ' + Math.random() }
+                    user_login: 'mock_user_' + secureRandomInt(100),
+                    message: { text: 'This is a mock message ' + secureRandomInt(1_000_000) }
                 };
                 eventData.payload = eventData.event;
                 break;
