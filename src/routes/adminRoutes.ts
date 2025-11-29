@@ -14,6 +14,7 @@ export function createAdminRouter(eventSubService: EventSubService) {
       if (!body || typeof body !== "object") {
         return res.status(400).json({ error: "Invalid request body" });
       }
+      /* eslint-disable camelcase */
       const { twitch_user_id, login } = body;
       if (!twitch_user_id || !login) {
         return res
@@ -30,6 +31,7 @@ export function createAdminRouter(eventSubService: EventSubService) {
           body.listen_chat_irc !== undefined ? !!body.listen_chat_irc : false,
         eventsub_topics: body.eventsub_topics || [],
       };
+      /* eslint-enable camelcase */
       appConfig.channels.push(newChannel);
       if (!envConfig.useMock && newChannel.listen_eventsub) {
         await eventSubService.subscribeChannel(newChannel);

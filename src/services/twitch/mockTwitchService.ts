@@ -55,6 +55,7 @@ export class TwitchService {
       version: "1.0",
     };
 
+    /* eslint-disable camelcase */
     switch (type) {
       case "message":
         eventData.source = "irc";
@@ -133,6 +134,7 @@ export class TwitchService {
         };
         break;
     }
+    /* eslint-enable camelcase */
 
     this.ingestService.handleEvent(eventData);
   }

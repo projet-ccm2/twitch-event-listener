@@ -1,5 +1,4 @@
 import { TwitchEvent } from "../models/event";
-import { config } from "../config/config";
 import { logger } from "../utils/logger";
 import { config as envConfig } from "../config/environment";
 

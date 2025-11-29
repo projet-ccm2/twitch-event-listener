@@ -22,7 +22,7 @@ describe("loadEnv utility", () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "envtest-"));
     fs.writeFileSync(
       path.join(tmpDir, ".env"),
-      'FOO=bar\nEXISTING=old\nQUOTED=\"quoted\"\n#comment\n',
+      'FOO=bar\nEXISTING=old\nQUOTED="quoted"\n#comment\n',
     );
     process.chdir(tmpDir);
     process.env.EXISTING = "keep";

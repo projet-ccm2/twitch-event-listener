@@ -5,7 +5,7 @@ import { logger } from "../../utils/logger";
 import { IngestService } from "../ingestService";
 import crypto from "crypto";
 import https from "https";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 
 export class EventSubService {
   private ingestService: IngestService;
@@ -154,6 +154,7 @@ export class EventSubService {
 
     if (typeof topicConfig === "string") {
       topicName = topicConfig;
+      /* eslint-disable camelcase */
       if (topicName === "channel.follow") {
         version = "2";
         condition = {
@@ -171,6 +172,7 @@ export class EventSubService {
       condition = topicConfig.condition || {
         broadcaster_user_id: channel.twitch_user_id,
       };
+      /* eslint-enable camelcase */
     }
 
     const payload = {
@@ -196,7 +198,7 @@ export class EventSubService {
     };
 
     try {
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve) => {
         const req = https.request(options, (res) => {
           let data = "";
           res.on("data", (chunk) => (data += chunk));

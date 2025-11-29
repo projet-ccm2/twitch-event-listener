@@ -3,6 +3,7 @@ import typescript from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import prettierPlugin from "eslint-plugin-prettier";
 import jsdocPlugin from "eslint-plugin-jsdoc";
+import globals from "globals";
 
 export default [
   js.configs.recommended,
@@ -13,6 +14,11 @@ export default [
       parserOptions: {
         ecmaVersion: 2021,
         sourceType: "module",
+      },
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+        NodeJS: "readonly",
       },
     },
     plugins: {
@@ -27,6 +33,12 @@ export default [
       "prettier/prettier": "error",
       "jsdoc/check-tag-names": "error",
       "jsdoc/require-description": "error",
+    },
+  },
+  {
+    files: ["src/tests/**/*.ts"],
+    rules: {
+      camelcase: "off",
     },
   },
 ];

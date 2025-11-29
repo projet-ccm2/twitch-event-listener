@@ -1,7 +1,6 @@
 import "./utils/loadEnv";
 import express from "express";
 import { config as envConfig } from "./config/environment";
-import { config } from "./config/config";
 import metricsRouter from "./routes/metricsRoutes";
 import { TwitchService } from "./services/twitch/mockTwitchService";
 import { EventSubService } from "./services/twitch/eventsubService";

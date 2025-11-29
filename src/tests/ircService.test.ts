@@ -43,6 +43,7 @@ describe("IrcService", () => {
 });
 
 describe("IrcService message buffering", () => {
+  // eslint-disable-next-line no-unused-vars
   const handleBatchMock = jest.fn(async (_batch: any[]) => {});
 
   beforeEach(() => {
