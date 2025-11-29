@@ -23,4 +23,8 @@ export const config = {
     authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:5000/listeners',
     syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '60000', 10),
     chatBufferTime: parseInt(process.env.CHAT_BUFFER_TIME || '5000', 10),
+    twitch: {
+        ircPassword: process.env.TWITCH_IRC_PASSWORD || 'SCHMOOPIIE',
+        ircNick: process.env.TWITCH_IRC_NICK || 'justinfan12345',
+    },
 };

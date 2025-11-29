@@ -39,7 +39,7 @@ describe("SchedulerService", () => {
     const es = new MockEventSub() as any;
     const irc = new MockIrc() as any;
     const svc = new SchedulerService(es, irc);
-    svc.start();
+    await svc.start();
 
     // first immediate sync
     await Promise.resolve();
@@ -60,8 +60,7 @@ describe("SchedulerService", () => {
     const es = new MockEventSub() as any;
     const irc = new MockIrc() as any;
     const svc = new SchedulerService(es, irc);
-    svc.start();
-    await Promise.resolve();
+    await svc.start();
     // ensure we didn't call deps due to failure
     expect(es.subscribeAll).not.toHaveBeenCalled();
     expect(irc.updateSubscriptions).not.toHaveBeenCalled();

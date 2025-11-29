@@ -17,16 +17,19 @@ export class SchedulerService {
         this.ircService = ircService;
     }
 
-    public start() {
-        this.syncListeners();
+    public async start() {
+        const initialSync = this.syncListeners();
         this.intervalId = setInterval(
-            () => this.syncListeners(),
+            () => {
+                void this.syncListeners();
+            },
             config.syncIntervalMs
         );
         logger.info('SchedulerService started', {
             service: 'twitch-scheduler',
             intervalMs: config.syncIntervalMs,
         });
+        await initialSync;
     }
 
     public stop() {
@@ -38,29 +41,28 @@ export class SchedulerService {
     }
 
     private async syncListeners() {
-        fetch(config.authServiceUrl)
-            .then(async (response) => {
-                if (!response.ok) {
-                    throw new Error(`Auth Service returned ${response.status}`);
-                }
+        try {
+            const response = await fetch(config.authServiceUrl);
+            if (!response.ok) {
+                throw new Error(`Auth Service returned ${response.status}`);
+            }
 
-                // Immediately refresh downstream services upon a successful response
-                const channels: ChannelConfig[] = await response.json();
-                config.channels = channels;
+            // Immediately refresh downstream services upon a successful response
+            const channels: ChannelConfig[] = await response.json();
+            config.channels = channels;
 
-                logger.info('Triggering EventSub subscribeAll', { service: 'twitch-scheduler' });
-                this.eventSubService.subscribeAll();
-                this.ircService.updateSubscriptions();
-                logger.info(`Synced ${channels.length} channels from Auth Service`, {
-                    service: 'twitch-scheduler',
-                    count: channels.length,
-                });
-            })
-            .catch((err) => {
-                logger.error('Failed to sync listeners', {
-                    service: 'twitch-scheduler',
-                    error: err,
-                });
+            logger.info('Triggering EventSub subscribeAll', { service: 'twitch-scheduler' });
+            await this.eventSubService.subscribeAll();
+            this.ircService.updateSubscriptions();
+            logger.info(`Synced ${channels.length} channels from Auth Service`, {
+                service: 'twitch-scheduler',
+                count: channels.length,
             });
+        } catch (err) {
+            logger.error('Failed to sync listeners', {
+                service: 'twitch-scheduler',
+                error: err,
+            });
+        }
     }
 }
