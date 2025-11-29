@@ -26,8 +26,13 @@ export class IrcService {
 
         this.ws.on('open', () => {
             logger.info('Connected to Twitch IRC', { service: 'twitch-irc' });
-            this.ws?.send('PASS SCHMOOPIIE');
-            this.ws?.send('NICK justinfan12345');
+            // Use config.twitch.ircPassword and config.twitch.ircNick if provided, else default to anonymous
+            // For anonymous, read-only access, password should be 'SCHMOOPIIE' and nick 'justinfan12345'
+            // For authenticated access, password should be 'oauth:<token>' and nick your Twitch username
+            const ircPassword = config.twitch?.ircPassword || 'SCHMOOPIIE';
+            const ircNick = config.twitch?.ircNick || 'justinfan12345';
+            this.ws?.send(`PASS ${ircPassword}`);
+            this.ws?.send(`NICK ${ircNick}`);
             this.updateSubscriptions();
         });
 
