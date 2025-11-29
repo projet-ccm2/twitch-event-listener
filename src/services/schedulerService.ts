@@ -45,13 +45,12 @@ export class SchedulerService {
                 }
 
                 // Immediately refresh downstream services upon a successful response
-                logger.info('Triggering EventSub subscribeAll', { service: 'twitch-scheduler' });
-                this.eventSubService.subscribeAll();
-                this.ircService.updateSubscriptions();
-
                 const channels: ChannelConfig[] = await response.json();
                 config.channels = channels;
 
+                logger.info('Triggering EventSub subscribeAll', { service: 'twitch-scheduler' });
+                this.eventSubService.subscribeAll();
+                this.ircService.updateSubscriptions();
                 logger.info(`Synced ${channels.length} channels from Auth Service`, {
                     service: 'twitch-scheduler',
                     count: channels.length,
