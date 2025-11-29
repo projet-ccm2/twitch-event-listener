@@ -20,8 +20,7 @@ describe("loadEnv utility", () => {
 
   test("loads variables from .env without overwriting existing values", () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "envtest-"));
-    const envFileContent =
-      'FOO=bar\nEXISTING=old\nQUOTED="quoted"\n#comment\n';
+    const envFileContent = 'FOO=bar\nEXISTING=old\nQUOTED="quoted"\n#comment\n';
     fs.writeFileSync(path.join(tmpDir, ".env"), envFileContent);
     process.chdir(tmpDir);
     process.env.EXISTING = "keep";
