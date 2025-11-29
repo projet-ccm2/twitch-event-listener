@@ -22,4 +22,5 @@ export const config = {
     dispatcherUrl: process.env.DISPATCHER_URL || 'http://localhost:4000/events',
     authServiceUrl: process.env.AUTH_SERVICE_URL || 'http://localhost:5000/listeners',
     syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '60000', 10),
+    chatBufferTime: parseInt(process.env.CHAT_BUFFER_TIME || '5000', 10),
 };
