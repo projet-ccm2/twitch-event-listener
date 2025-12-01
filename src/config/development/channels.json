@@ -3,7 +3,7 @@
     "twitchUserId": "141512329",
     "login": "impolios",
     "scopes": ["channel:read:subscriptions", "bits:read"],
-    "listenEventsub": true,
+    "listenEventSub": true,
     "listenChatIrc": true,
     "eventSubTopics": [
       "stream.online",
