@@ -20,7 +20,6 @@ export class IngestService {
         eventType: normalizedEvent.type,
       });
 
-      console.log("Calling dispatch with:", normalizedEvent);
       await this.dispatcher.dispatch(normalizedEvent);
     } catch (err) {
       logger.error("Failed to ingest event", {
