@@ -36,9 +36,9 @@ export class SchedulerService {
 
   private async syncListeners() {
     try {
-      const response = await fetch(config.authServiceUrl);
+      const response = await fetch(config.dbServiceUrl);
       if (!response.ok) {
-        throw new Error(`Auth Service returned ${response.status}`);
+        throw new Error(`DB Service returned ${response.status}`);
       }
 
       // Immediately refresh downstream services upon a successful response
@@ -50,7 +50,7 @@ export class SchedulerService {
       });
       await this.eventSubService.subscribeAll();
       this.ircService.updateSubscriptions();
-      logger.info(`Synced ${channels.length} channels from Auth Service`, {
+      logger.info(`Synced ${channels.length} channels from DB Service`, {
         service: "twitch-scheduler",
         count: channels.length,
       });
