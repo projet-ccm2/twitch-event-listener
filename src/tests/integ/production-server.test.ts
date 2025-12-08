@@ -13,7 +13,34 @@ jest.mock("../../config/environment", () => ({
   config: {
     nodeEnv: "production",
     port: 3000,
+    useMock: false,
+    cors: { allowedOrigins: ["*"] },
   },
+}));
+
+jest.mock("../../routes/metricsRoutes", () => jest.fn());
+jest.mock("../../routes/webhooksRoutes", () => jest.fn());
+jest.mock("../../routes/adminRoutes", () => jest.fn());
+jest.mock("../../services/twitch/mockTwitchService", () => ({
+  TwitchService: jest.fn().mockImplementation(() => ({
+    start: jest.fn(),
+    stop: jest.fn(),
+  })),
+}));
+jest.mock("../../services/twitch/eventsubService", () => ({
+  EventSubService: jest.fn().mockImplementation(() => ({
+    subscribeAll: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+jest.mock("../../services/twitch/ircService", () => ({
+  IrcService: jest.fn().mockImplementation(() => ({
+    connect: jest.fn(),
+  })),
+}));
+jest.mock("../../services/schedulerService", () => ({
+  SchedulerService: jest.fn().mockImplementation(() => ({
+    start: jest.fn(),
+  })),
 }));
 
 describe("Production Server", () => {
@@ -45,9 +72,20 @@ describe("Production Server", () => {
       }),
       get: jest.fn(),
       disable: jest.fn(),
+      use: jest.fn(),
     };
 
-    jest.doMock("express", () => jest.fn(() => mockApp));
+    jest.doMock("express", () => {
+      const mockExpress = jest.fn(() => mockApp);
+      (mockExpress as any).Router = jest.fn(() => ({
+        get: jest.fn(),
+        post: jest.fn(),
+        put: jest.fn(),
+        delete: jest.fn(),
+        use: jest.fn(),
+      }));
+      return mockExpress;
+    });
 
     jest.clearAllMocks();
   });
