@@ -1,12 +1,11 @@
 /* eslint-disable camelcase */
-import { ChannelConfig } from "../../models/channel";
 import { config } from "../../config/config";
 import { IngestService } from "../ingestService";
 import { logger } from "../../utils/logger";
 import { secureId, secureRandomInt } from "../../utils/random";
 
 export class TwitchService {
-  private ingestService: IngestService;
+  private readonly ingestService: IngestService;
   private intervalId: NodeJS.Timeout | null = null;
   private isRunning: boolean = false;
 

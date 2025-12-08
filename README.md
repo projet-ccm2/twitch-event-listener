@@ -16,16 +16,16 @@ Le service est construit autour de plusieurs composants clés :
 graph TD
     Twitch[Twitch Platform] -->|Webhooks (HTTP)| EventSub[EventSub Service]
     Twitch -->|WebSocket| IRC[IRC Service]
-    
+
     DBService[DB Service] -->|GET /channels| Scheduler[Scheduler Service]
     Scheduler -->|Update Config| Config[In-Memory Config]
-    
+
     EventSub -->|Raw Event| Ingest[Ingest Service]
     IRC -->|Raw Message| Ingest
-    
+
     Ingest -->|Normalize| Ingest
     Ingest -->|TwitchEvent| Dispatcher[Dispatcher Service]
-    
+
     Dispatcher -->|POST /events| MainAPI[Main API / Backend]
 ```
 
@@ -41,14 +41,14 @@ graph TD
 
 ## 🚀 Fonctionnalités Clés
 
-*   **Multi-Protocole** : Support simultané de EventSub (Webhooks) et IRC (Chat).
-*   **Normalisation Unique** : Format de sortie unique quel que soit l'événement source.
-*   **Mode Mock** : Générateur de faux événements intégré pour développer sans connexion internet ni compte Twitch.
-*   **Hot-Swapping** : Ajout/Suppression de chaînes à écouter dynamiquement sans redémarrage (via API Admin ou Scheduler).
-*   **Résilience** :
-    *   Reconnexion automatique IRC.
-    *   Retry HTTP intelligent vers le Dispatcher (1s, 2s, 4s, 8s, 16s + Jitter).
-    *   Buffering des messages de chat (batching).
+- **Multi-Protocole** : Support simultané de EventSub (Webhooks) et IRC (Chat).
+- **Normalisation Unique** : Format de sortie unique quel que soit l'événement source.
+- **Mode Mock** : Générateur de faux événements intégré pour développer sans connexion internet ni compte Twitch.
+- **Hot-Swapping** : Ajout/Suppression de chaînes à écouter dynamiquement sans redémarrage (via API Admin ou Scheduler).
+- **Résilience** :
+  - Reconnexion automatique IRC.
+  - Retry HTTP intelligent vers le Dispatcher (1s, 2s, 4s, 8s, 16s + Jitter).
+  - Buffering des messages de chat (batching).
 
 ---
 
@@ -56,23 +56,24 @@ graph TD
 
 ### Variables d'Environnement (`.env`)
 
-| Variable | Description | Défaut |
-| :--- | :--- | :--- |
-| `NODE_ENV` | Environnement (`development`, `production`, `test`) | `development` |
-| `PORT` | Port du serveur HTTP | `3000` |
-| `USE_MOCK` | Activer le mode simulation (`true`/`false`) | `false` |
-| `DISPATCHER_URL` | URL de votre API qui recevra les événements | `http://localhost:4000/events` |
-| `DB_SERVICE_URL` | URL pour récupérer la config des chaînes (Prod) | `http://localhost:5000/listeners` |
-| `SYNC_INTERVAL_MS` | Fréquence de synchro avec DB Service (ms) | `60000` (1min) |
-| `CHAT_BUFFER_TIME` | Temps de buffer pour les messages IRC (ms) | `5000` |
-| `TWITCH_CLIENT_ID` | Client ID Twitch (Requis si !Mock) | - |
-| `TWITCH_APP_ACCESS_TOKEN` | App Token Twitch (Requis si !Mock) | - |
-| `TWITCH_WEBHOOK_SECRET` | Secret pour signer les webhooks | - |
-| `PUBLIC_EVENTSUB_CALLBACK` | URL publique de ce service (ex: ngrok) | - |
+| Variable                   | Description                                         | Défaut                            |
+| :------------------------- | :-------------------------------------------------- | :-------------------------------- |
+| `NODE_ENV`                 | Environnement (`development`, `production`, `test`) | `development`                     |
+| `PORT`                     | Port du serveur HTTP                                | `3000`                            |
+| `USE_MOCK`                 | Activer le mode simulation (`true`/`false`)         | `false`                           |
+| `DISPATCHER_URL`           | URL de votre API qui recevra les événements         | `http://localhost:4000/events`    |
+| `DB_SERVICE_URL`           | URL pour récupérer la config des chaînes (Prod)     | `http://localhost:5000/listeners` |
+| `SYNC_INTERVAL_MS`         | Fréquence de synchro avec DB Service (ms)           | `60000` (1min)                    |
+| `CHAT_BUFFER_TIME`         | Temps de buffer pour les messages IRC (ms)          | `5000`                            |
+| `TWITCH_CLIENT_ID`         | Client ID Twitch (Requis si !Mock)                  | -                                 |
+| `TWITCH_APP_ACCESS_TOKEN`  | App Token Twitch (Requis si !Mock)                  | -                                 |
+| `TWITCH_WEBHOOK_SECRET`    | Secret pour signer les webhooks                     | -                                 |
+| `PUBLIC_EVENTSUB_CALLBACK` | URL publique de ce service (ex: ngrok)              | -                                 |
 
 ### Exemples de fichiers .env
 
 #### 1. Développement (Mode Mock)
+
 Idéal pour tester en local sans connexion Twitch ni credentials.
 
 ```env
@@ -83,6 +84,7 @@ DISPATCHER_URL=http://localhost:4000/events
 ```
 
 #### 2. Production (Réel)
+
 Configuration type pour un déploiement réel avec connexion à Twitch et aux autres microservices.
 
 ```env
@@ -104,8 +106,8 @@ PUBLIC_EVENTSUB_CALLBACK=https://mon-domaine-public.com
 
 ### Configuration des Chaînes
 
-*   **Développement** : Fichier `src/config/development/channels.json`.
-*   **Production** : Via `DB_SERVICE_URL`. Le service attend une réponse JSON avec ce format :
+- **Développement** : Fichier `src/config/development/channels.json`.
+- **Production** : Via `DB_SERVICE_URL`. Le service attend une réponse JSON avec ce format :
 
 ```json
 [
@@ -125,66 +127,70 @@ PUBLIC_EVENTSUB_CALLBACK=https://mon-domaine-public.com
 ## 🔌 API Reference
 
 ### 1. Health Check
+
 Vérifier l'état du service.
 
-*   **Route** : `GET /health`
-*   **Réponse (200 OK)** :
-    ```json
-    {
-      "status": "healthy",
-      "timestamp": "2023-10-27T10:00:00.000Z",
-      "environment": "production"
-    }
-    ```
+- **Route** : `GET /health`
+- **Réponse (200 OK)** :
+  ```json
+  {
+    "status": "healthy",
+    "timestamp": "2023-10-27T10:00:00.000Z",
+    "environment": "production"
+  }
+  ```
 
 ### 2. Métriques
+
 Obtenir des statistiques sur les événements traités.
 
-*   **Global** : `GET /metrics`
-*   **Par Chaîne** : `GET /metrics/:channelId`
-*   **Par User** : `GET /metrics/:channelId/users/:userId`
-*   **Réponse (200 OK)** :
-    ```json
-    {
-      "totalEvents": 150,
-      "byType": {
-        "message": 140,
-        "channel.follow": 10
-      },
-      "uptime": 3600
-    }
-    ```
+- **Global** : `GET /metrics`
+- **Par Chaîne** : `GET /metrics/:channelId`
+- **Par User** : `GET /metrics/:channelId/users/:userId`
+- **Réponse (200 OK)** :
+  ```json
+  {
+    "totalEvents": 150,
+    "byType": {
+      "message": 140,
+      "channel.follow": 10
+    },
+    "uptime": 3600
+  }
+  ```
 
 ### 3. Webhook Callback (Interne Twitch)
+
 Route appelée par Twitch pour envoyer des notifications.
 
-*   **Route** : `POST /eventsub/callback`
-*   **Headers Requis** :
-    *   `Twitch-Eventsub-Message-Id`
-    *   `Twitch-Eventsub-Message-Timestamp`
-    *   `Twitch-Eventsub-Message-Signature` (HMAC-SHA256)
-*   **Comportement** :
-    *   Vérifie la signature.
-    *   Si type `webhook_callback_verification` : Renvoie le challenge.
-    *   Si type `notification` : Traite l'événement et renvoie 202 Accepted.
+- **Route** : `POST /eventsub/callback`
+- **Headers Requis** :
+  - `Twitch-Eventsub-Message-Id`
+  - `Twitch-Eventsub-Message-Timestamp`
+  - `Twitch-Eventsub-Message-Signature` (HMAC-SHA256)
+- **Comportement** :
+  - Vérifie la signature.
+  - Si type `webhook_callback_verification` : Renvoie le challenge.
+  - Si type `notification` : Traite l'événement et renvoie 202 Accepted.
 
 ### 4. Admin - Ajouter une chaîne
+
 Ajouter manuellement une chaîne à écouter (utile pour le debug ou l'ajout immédiat).
 
-*   **Route** : `POST /admin/channels`
-*   **Body Requis** :
-    ```json
-    {
-      "twitchUserId": "987654321",
-      "login": "nouveau_streamer",
-      "listenEventSub": true,
-      "listenChatIrc": true
-    }
-    ```
-*   **Réponse (201 Created)** :
-    ```json
-    { "status": "channel added" }
-    ```
+- **Route** : `POST /admin/channels`
+- **Body Requis** :
+  ```json
+  {
+    "twitchUserId": "987654321",
+    "login": "nouveau_streamer",
+    "listenEventSub": true,
+    "listenChatIrc": true
+  }
+  ```
+- **Réponse (201 Created)** :
+  ```json
+  { "status": "channel added" }
+  ```
 
 ---
 
@@ -197,24 +203,25 @@ Note : Peut être un objet unique ou un tableau d'objets (batch).
 
 ```typescript
 interface TwitchEvent {
-  id: string;           // UUID unique de l'événement
-  source: string;       // "eventsub" ou "irc"
-  type: string;         // ex: "message", "channel.follow", "stream.online"
-  timestamp: string;    // ISO 8601
-  version: string;      // "1.0"
-  
+  id: string; // UUID unique de l'événement
+  source: string; // "eventsub" ou "irc"
+  type: string; // ex: "message", "channel.follow", "stream.online"
+  timestamp: string; // ISO 8601
+  version: string; // "1.0"
+
   // Identifiants contextuels (si disponibles)
-  channelId?: string;   // ID Twitch du broadcaster
-  channelLogin?: string;// Login du broadcaster
-  userId?: string;      // ID Twitch de l'utilisateur (source de l'action)
-  userLogin?: string;   // Login de l'utilisateur
+  channelId?: string; // ID Twitch du broadcaster
+  channelLogin?: string; // Login du broadcaster
+  userId?: string; // ID Twitch de l'utilisateur (source de l'action)
+  userLogin?: string; // Login de l'utilisateur
 
   // Données brutes ou spécifiques
-  payload: any;         
+  payload: any;
 }
 ```
 
 ### Exemple : Message de Chat
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -232,6 +239,7 @@ interface TwitchEvent {
 ```
 
 ### Exemple : Follow (EventSub)
+
 ```json
 {
   "id": "eventsub-subscription-id:event-id",
@@ -257,39 +265,47 @@ interface TwitchEvent {
 ## 🛠 Installation et Démarrage
 
 ### Prérequis
-*   Node.js v18+
-*   npm
+
+- Node.js v18+
+- npm
 
 ### Installation
+
 ```bash
 npm install
 ```
 
 ### Mode Développement (Hot Reload)
+
 ```bash
 npm run dev
 ```
-*   Charge la config depuis `src/config/development/channels.json`.
-*   Si `USE_MOCK=true`, génère de faux événements.
+
+- Charge la config depuis `src/config/development/channels.json`.
+- Si `USE_MOCK=true`, génère de faux événements.
 
 ### Mode Production
+
 ```bash
 npm run build
 npm start
 ```
-*   Active le `SchedulerService`.
-*   Appelle `DB_SERVICE_URL` au démarrage pour la config.
+
+- Active le `SchedulerService`.
+- Appelle `DB_SERVICE_URL` au démarrage pour la config.
 
 ### Tests
+
 ```bash
 npm test
 ```
+
 Lance la suite de tests unitaires avec Jest.
 
 ---
 
 ## 🛡 Sécurité
 
-*   **Signature Webhook** : Tous les appels sur `/eventsub/callback` sont rejetés si la signature HMAC ne correspond pas à `TWITCH_WEBHOOK_SECRET`.
-*   **CORS** : Configurable via `CORS_ALLOWED_ORIGINS` dans `.env`.
-*   **Validation** : Les entrées API sont typées et validées.
+- **Signature Webhook** : Tous les appels sur `/eventsub/callback` sont rejetés si la signature HMAC ne correspond pas à `TWITCH_WEBHOOK_SECRET`.
+- **CORS** : Configurable via `CORS_ALLOWED_ORIGINS` dans `.env`.
+- **Validation** : Les entrées API sont typées et validées.

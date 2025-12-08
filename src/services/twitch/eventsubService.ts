@@ -4,12 +4,12 @@ import { ChannelConfig } from "../../models/channel";
 /* eslint-disable camelcase */
 import { logger } from "../../utils/logger";
 import { IngestService } from "../ingestService";
-import crypto from "crypto";
-import https from "https";
-import { Request, Response, NextFunction } from "express";
+import crypto from "node:crypto";
+import https from "node:https";
+import { Request, Response } from "express";
 
 export class EventSubService {
-  private ingestService: IngestService;
+  private readonly ingestService: IngestService;
 
   constructor() {
     this.ingestService = new IngestService();

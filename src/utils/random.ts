@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 // Cryptographically secure unique ID
 export function secureId(): string {

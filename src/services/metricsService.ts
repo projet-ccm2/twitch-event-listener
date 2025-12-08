@@ -17,7 +17,7 @@ interface ChannelMetrics {
 
 export class MetricsService {
   private static instance: MetricsService;
-  private channelMetrics: Map<string, ChannelMetrics>;
+  private readonly channelMetrics: Map<string, ChannelMetrics>;
 
   private constructor() {
     this.channelMetrics = new Map();

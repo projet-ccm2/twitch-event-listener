@@ -3,7 +3,7 @@ dotenv.config();
 
 export const config = {
   nodeEnv: process.env.NODE_ENV || "development",
-  port: parseInt(process.env.PORT || "3000", 10),
+  port: Number.parseInt(process.env.PORT || "3000", 10),
   useMock: process.env.USE_MOCK === "true",
   twitch: {
     clientId: process.env.TWITCH_CLIENT_ID || "",
@@ -18,5 +18,5 @@ export const config = {
   },
   dispatcherApiUrl:
     process.env.DISPATCHER_API_URL || "http://localhost:4000/events",
-  chatBufferTime: parseInt(process.env.CHAT_BUFFER_TIME || "5000", 10),
+  chatBufferTime: Number.parseInt(process.env.CHAT_BUFFER_TIME || "5000", 10),
 };

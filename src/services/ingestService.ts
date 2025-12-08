@@ -1,10 +1,10 @@
 import { TwitchEvent } from "../models/event";
 import { DispatcherService } from "./dispatcherService";
 import { logger } from "../utils/logger";
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 export class IngestService {
-  private dispatcher: DispatcherService;
+  private readonly dispatcher: DispatcherService;
 
   constructor(dispatcher?: DispatcherService) {
     this.dispatcher = dispatcher || new DispatcherService();

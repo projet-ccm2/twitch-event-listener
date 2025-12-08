@@ -1,9 +1,9 @@
-import { Router } from "express";
 import express from "express";
+
 import { EventSubService } from "../services/twitch/eventsubService";
 
 export function createWebhookRouter(eventSubService: EventSubService) {
-  const router = Router();
+  const router = express.Router();
   router.post(
     "/eventsub/callback",
     express.raw({ type: "application/json" }),

@@ -1,4 +1,3 @@
-import { Router } from "express";
 import express from "express";
 import { ChannelConfig } from "../models/channel";
 import { config as appConfig } from "../config/config";
@@ -6,7 +5,7 @@ import { config as envConfig } from "../config/environment";
 import { EventSubService } from "../services/twitch/eventsubService";
 
 export function createAdminRouter(eventSubService: EventSubService) {
-  const router = Router();
+  const router = express.Router();
   router.use(express.json());
   router.post("/admin/channels", async (req, res) => {
     try {

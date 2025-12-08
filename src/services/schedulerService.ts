@@ -5,8 +5,8 @@ import { ChannelConfig } from "../models/channel";
 import { logger } from "../utils/logger";
 
 export class SchedulerService {
-  private eventSubService: EventSubService;
-  private ircService: IrcService;
+  private readonly eventSubService: EventSubService;
+  private readonly ircService: IrcService;
   private intervalId: NodeJS.Timeout | null = null;
 
   constructor(eventSubService: EventSubService, ircService: IrcService) {
