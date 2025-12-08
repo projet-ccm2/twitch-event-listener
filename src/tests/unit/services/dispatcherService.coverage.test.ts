@@ -1,5 +1,4 @@
 import { DispatcherService } from "../../../services/dispatcherService";
-import { config as envConfig } from "../../../config/environment";
 import { logger } from "../../../utils/logger";
 
 // Mock global fetch
@@ -7,25 +6,36 @@ global.fetch = jest.fn();
 
 describe("DispatcherService Coverage", () => {
   let svc: DispatcherService;
-  const originalNodeEnv = envConfig.nodeEnv;
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  const loadDispatcher = async () => {
+    jest.resetModules();
+    const { DispatcherService } = await import(
+      "../../../services/dispatcherService"
+    );
+    return DispatcherService;
+  };
 
   beforeEach(() => {
     svc = new DispatcherService("http://test-url");
     jest.clearAllMocks();
     jest.useFakeTimers();
-    envConfig.nodeEnv = "test";
+    process.env.NODE_ENV = "test";
   });
 
   afterEach(() => {
-    envConfig.nodeEnv = originalNodeEnv;
+    process.env.NODE_ENV = originalNodeEnv;
     jest.useRealTimers();
   });
 
   test("logs to console in development mode (single event)", async () => {
-    envConfig.nodeEnv = "development";
+    process.env.NODE_ENV = "development";
+    // Reload service to pick up env change
+    const DS = await loadDispatcher();
+    const localSvc = new DS("http://test-url");
     const consoleSpy = jest.spyOn(console, "log").mockImplementation();
 
-    await svc.dispatch({
+    await localSvc.dispatch({
       id: "1",
       type: "test",
       source: "test",
@@ -41,10 +51,12 @@ describe("DispatcherService Coverage", () => {
   });
 
   test("logs to console in development mode (batch)", async () => {
-    envConfig.nodeEnv = "development";
+    process.env.NODE_ENV = "development";
+    const DS = await loadDispatcher();
+    const localSvc = new DS("http://test-url");
     const consoleSpy = jest.spyOn(console, "log").mockImplementation();
 
-    await svc.dispatch([
+    await localSvc.dispatch([
       {
         id: "1",
         type: "test",
@@ -71,7 +83,7 @@ describe("DispatcherService Coverage", () => {
     const errorSpy = jest.spyOn(logger, "error");
 
     // We need to wait for retries
-    const promise = svc.dispatch({
+    await svc.dispatch({
       id: "1",
       type: "test",
       source: "test",
@@ -81,12 +93,7 @@ describe("DispatcherService Coverage", () => {
     });
 
     // Fast-forward timers through retries
-    for (let i = 0; i < 5; i++) {
-      await Promise.resolve(); // Allow async loop to progress
-      jest.runAllTimers();
-    }
-
-    await promise;
+    await jest.runAllTimersAsync();
 
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("Dispatcher service unreachable"),
@@ -102,7 +109,7 @@ describe("DispatcherService Coverage", () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Generic error"));
     const warnSpy = jest.spyOn(logger, "warn");
 
-    const promise = svc.dispatch([
+    await svc.dispatch([
       {
         id: "1",
         type: "test",
@@ -113,11 +120,7 @@ describe("DispatcherService Coverage", () => {
       },
     ]);
 
-    for (let i = 0; i < 5; i++) {
-      await Promise.resolve();
-      jest.runAllTimers();
-    }
-    await promise;
+    await jest.runAllTimersAsync();
 
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("Failed to dispatch event(s) batch-1"),
@@ -138,7 +141,7 @@ describe("DispatcherService Coverage", () => {
     const warnSpy = jest.spyOn(logger, "warn");
     const debugSpy = jest.spyOn(logger, "debug");
 
-    const promise = svc.dispatch({
+    await svc.dispatch({
       id: "1",
       type: "test",
       source: "test",
@@ -147,11 +150,7 @@ describe("DispatcherService Coverage", () => {
       payload: {},
     });
 
-    for (let i = 0; i < 3; i++) {
-      await Promise.resolve();
-      jest.runAllTimers();
-    }
-    await promise;
+    await jest.runAllTimersAsync();
 
     expect(warnSpy).toHaveBeenCalledTimes(2);
     expect(debugSpy).toHaveBeenCalledWith(
@@ -166,7 +165,7 @@ describe("DispatcherService Coverage", () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Always fail"));
     const errorSpy = jest.spyOn(logger, "error");
 
-    const promise = svc.dispatch({
+    await svc.dispatch({
       id: "guard",
       type: "test",
       source: "test",
@@ -176,14 +175,10 @@ describe("DispatcherService Coverage", () => {
     });
 
     // Run through all attempts
-    for (let i = 0; i < 6; i++) {
-      await Promise.resolve();
-      jest.runAllTimers();
-    }
-    await promise;
+    await jest.runAllTimersAsync();
 
     // Run timers one last time for the guard
-    jest.runAllTimers();
+    await jest.runAllTimersAsync();
 
     expect(errorSpy).toHaveBeenCalledWith(
       expect.stringContaining("Dropped event(s) guard"),

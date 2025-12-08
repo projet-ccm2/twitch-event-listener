@@ -93,12 +93,8 @@ describe("DispatcherService", () => {
 
     await ds.dispatch(evt);
 
-    // Advance timers to cover 1s + 2s + 4s + 8s + 16s
-    jest.advanceTimersByTime(1_000);
-    jest.advanceTimersByTime(2_000);
-    jest.advanceTimersByTime(4_000);
-    jest.advanceTimersByTime(8_000);
-    jest.advanceTimersByTime(16_000);
+    // Use runAllTimersAsync to execute all pending timers and their async callbacks
+    await jest.runAllTimersAsync();
 
     expect(fetchMock).toHaveBeenCalledTimes(5);
     expect(errSpy).toHaveBeenCalled();

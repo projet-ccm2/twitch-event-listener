@@ -12,7 +12,7 @@ import path from "node:path";
       if (!line) return;
       const trimmed = line.trim();
       if (trimmed === "" || trimmed.startsWith("#")) return;
-      const match = /^([A-Za-z_][\w]*)=(.*)$/.exec(trimmed);
+      const match = /^([A-Za-z_]\w*)=(.*)$/.exec(trimmed);
       if (!match) return;
       const key = match[1];
       let value = match[2].trim();

@@ -23,69 +23,64 @@ export class DispatcherService {
     const baseBackoffMs = 1000 * Math.pow(2, attempt - 1);
     const backoffMs = secureRandomInt(baseBackoffMs);
 
-    // Pre-schedule next attempt
-    const scheduleNext =
-      attempt < maxAttempts
-        ? setTimeout(() => {
-            void this.dispatch(event, attempt + 1);
-          }, backoffMs)
-        : null;
-
-    let success = false;
-
-    // Final drop guard for testing/timing stability
-    const finalDropGuard =
-      attempt >= maxAttempts
-        ? setTimeout(() => {
-            if (!success) {
-              this.logDrop(event, maxAttempts);
-            }
-          }, 0)
-        : null;
-
     try {
-      const response = await fetch(this.dispatcherUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(event),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      await this.sendRequest(event);
       this.logSuccess(event);
-      if (scheduleNext) clearTimeout(scheduleNext);
-      success = true;
-      if (finalDropGuard) clearTimeout(finalDropGuard);
     } catch (err) {
-      if (
-        err instanceof TypeError &&
-        (err as any).cause?.code === "ECONNREFUSED"
-      ) {
-        logger.warn(`Dispatcher service unreachable at ${this.dispatcherUrl}`, {
+      await this.handleDispatchError(
+        event,
+        attempt,
+        maxAttempts,
+        err,
+        backoffMs,
+      );
+    }
+  }
+
+  private async sendRequest(event: TwitchEvent | TwitchEvent[]) {
+    const response = await fetch(this.dispatcherUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  }
+
+  private async handleDispatchError(
+    event: TwitchEvent | TwitchEvent[],
+    attempt: number,
+    maxAttempts: number,
+    error: unknown,
+    backoffMs: number,
+  ) {
+    if (
+      error instanceof TypeError &&
+      (error as any).cause?.code === "ECONNREFUSED"
+    ) {
+      logger.warn(`Dispatcher service unreachable at ${this.dispatcherUrl}`, {
+        service: "twitch-notification-handler",
+        eventId: this.getEventId(event),
+      });
+    } else {
+      logger.warn(
+        `Failed to dispatch event(s) ${this.getEventId(event)} (attempt ${attempt}/${maxAttempts}): ${error}`,
+        {
           service: "twitch-notification-handler",
           eventId: this.getEventId(event),
-        });
-      } else {
-        logger.warn(
-          `Failed to dispatch event(s) ${this.getEventId(event)} (attempt ${attempt}/${maxAttempts}): ${err}`,
-          {
-            service: "twitch-notification-handler",
-            eventId: this.getEventId(event),
-            error: err,
-          },
-        );
-      }
+          error: error,
+        },
+      );
+    }
 
-      if (attempt >= maxAttempts && !finalDropGuard) {
-        if (scheduleNext) clearTimeout(scheduleNext);
-        this.logDrop(event, maxAttempts);
-      }
-    } finally {
-      if (!success && attempt >= maxAttempts && !finalDropGuard) {
-        this.logDrop(event, maxAttempts);
-      }
+    if (attempt < maxAttempts) {
+      setTimeout(() => {
+        void this.dispatch(event, attempt + 1);
+      }, backoffMs);
+    } else {
+      this.logDrop(event, maxAttempts);
     }
   }
 

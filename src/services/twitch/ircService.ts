@@ -41,8 +41,17 @@ export class IrcService {
     });
 
     this.ws.on("message", (data: WebSocket.Data) => {
-      const message = data.toString().trim();
-      this.handleMessage(message);
+      let message: string;
+      if (Buffer.isBuffer(data)) {
+        message = data.toString("utf8");
+      } else if (Array.isArray(data)) {
+        message = Buffer.concat(data).toString("utf8");
+      } else if (data instanceof ArrayBuffer) {
+        message = Buffer.from(data).toString("utf8");
+      } else {
+        message = data.toString();
+      }
+      this.handleMessage(message.trim());
     });
 
     this.ws.on("close", () => {
