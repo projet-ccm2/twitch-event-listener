@@ -1,6 +1,5 @@
+/* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
-import { config } from "../../../../config/config";
-import { config as envConfig } from "../../../../config/environment";
 import { logger } from "../../../../utils/logger";
 
 // Mock dependencies
@@ -31,16 +30,13 @@ jest.mock("../../../../utils/logger");
 
 describe("EventSubService revocation handling", () => {
   let svc: EventSubService;
-  let warnSpy: jest.SpyInstance;
-  let errorSpy: jest.SpyInstance;
-  let infoSpy: jest.SpyInstance;
 
   beforeEach(() => {
     svc = new EventSubService();
     jest.clearAllMocks();
-    warnSpy = jest.spyOn(logger, "warn");
-    errorSpy = jest.spyOn(logger, "error");
-    infoSpy = jest.spyOn(logger, "info");
+    jest.spyOn(logger, "warn");
+    jest.spyOn(logger, "error");
+    jest.spyOn(logger, "info");
 
     // Mock private methods
     (svc as any).subscribeToTopic = jest.fn().mockResolvedValue(undefined);
@@ -52,7 +48,7 @@ describe("EventSubService revocation handling", () => {
         id: "sub_1",
         status: "notification_failures_exceeded",
         type: "channel.follow",
-        condition: { broadcaster_user_id: "123" },
+        condition: { "broadcaster_user_id": "123" },
         version: "2",
       },
     };
@@ -79,7 +75,7 @@ describe("EventSubService revocation handling", () => {
         id: "sub_2",
         status: "authorization_revoked",
         type: "channel.follow",
-        condition: { broadcaster_user_id: "123" },
+        condition: { "broadcaster_user_id": "123" },
       },
     };
 
@@ -98,7 +94,7 @@ describe("EventSubService revocation handling", () => {
         id: "sub_3",
         status: "user_removed",
         type: "channel.follow",
-        condition: { broadcaster_user_id: "123" },
+        condition: { "broadcaster_user_id": "123" },
       },
     };
 
