@@ -48,7 +48,7 @@ describe("EventSubService revocation handling", () => {
         id: "sub_1",
         status: "notification_failures_exceeded",
         type: "channel.follow",
-        condition: { "broadcaster_user_id": "123" },
+        condition: { broadcaster_user_id: "123" },
         version: "2",
       },
     };
@@ -75,7 +75,7 @@ describe("EventSubService revocation handling", () => {
         id: "sub_2",
         status: "authorization_revoked",
         type: "channel.follow",
-        condition: { "broadcaster_user_id": "123" },
+        condition: { broadcaster_user_id: "123" },
       },
     };
 
@@ -94,7 +94,7 @@ describe("EventSubService revocation handling", () => {
         id: "sub_3",
         status: "user_removed",
         type: "channel.follow",
-        condition: { "broadcaster_user_id": "123" },
+        condition: { broadcaster_user_id: "123" },
       },
     };
 

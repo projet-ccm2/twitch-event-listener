@@ -15,12 +15,14 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "prettier": "npx prettier . --write",
+    "lint": "eslint . --ext .ts",
     "test": "jest --testPathPattern='src/' --runInBand --coverage --coverageReporters=lcov --passWithNoTests",
     "test:coverage": "jest --testPathPattern='src/' --runInBand --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json --passWithNoTests",
     "test:watch": "jest --testPathPattern='src/' --watch --coverage --passWithNoTests",
     "test:ci": "jest --testPathPattern='src/' --runInBand --coverage --coverageReporters=lcov --coverageReporters=json --ci --watchAll=false --passWithNoTests"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/express": "^5.0.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.4.0",
@@ -39,7 +41,8 @@
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.48.0"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
