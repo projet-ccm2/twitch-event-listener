@@ -1,11 +1,10 @@
 import { TwitchEvent } from "../models/event";
-import { config } from "../config/config";
 import { logger } from "../utils/logger";
 import { config as envConfig } from "../config/environment";
 import { secureRandomInt } from "../utils/random";
 
 export class DispatcherService {
-  private dispatcherUrl: string;
+  private readonly dispatcherUrl: string;
 
   constructor(dispatcherUrl?: string) {
     this.dispatcherUrl = dispatcherUrl || envConfig.dispatcherApiUrl;

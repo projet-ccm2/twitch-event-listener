@@ -2,10 +2,10 @@
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 import { config } from "../../../../config/config";
 import { config as envConfig } from "../../../../config/environment";
-import https from "https";
+import https from "node:https";
 import { EventEmitter } from "events";
 
-jest.mock("https");
+jest.mock("node:https");
 
 describe("EventSubService subscription", () => {
   let svc: EventSubService;
@@ -83,7 +83,7 @@ describe("EventSubService normalizeEvent", () => {
 
     expect(event.source).toBe("eventsub");
     expect(event.type).toBe("unknown");
-    expect(event.channelId).toBe("unknown");
+    expect(event.channelId).toBeUndefined();
   });
 
   test("normalizes event with subscription condition", () => {

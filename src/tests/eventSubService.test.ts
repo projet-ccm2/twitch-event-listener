@@ -98,7 +98,14 @@ describe("EventSubService webhook handling", () => {
 
   test("revocation returns 200 and does not call ingest", async () => {
     const svc = new EventSubService();
-    const bodyStr = JSON.stringify({});
+    const bodyStr = JSON.stringify({
+      subscription: {
+        id: "sub_revoked",
+        status: "authorization_revoked",
+        type: "channel.follow",
+        condition: { broadcaster_user_id: "123" },
+      },
+    });
     const messageId = "mid3";
     const timestamp = "111";
     const sig =

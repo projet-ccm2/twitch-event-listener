@@ -7,7 +7,7 @@ import { IngestService } from "../ingestService";
 import crypto from "node:crypto";
 import https from "node:https";
 import { Request, Response } from "express";
-
+import { TwitchEvent } from "../../models/event";
 export class EventSubService {
   private readonly ingestService: IngestService;
 
@@ -83,16 +83,62 @@ export class EventSubService {
 
     if (messageType === "revocation") {
       res.status(200).send();
-      logger.warn("Subscription revoked", { payload: bodyString });
+      const payload = JSON.parse(bodyString);
+      await this.handleRevocation(payload);
       return;
     }
 
     res.status(200).send();
   }
 
-  private normalizeEvent(
-    payload: any,
-  ): import("../../models/event").TwitchEvent {
+  private async handleRevocation(payload: any) {
+    const subscription = payload.subscription;
+    const { status, type, condition } = subscription;
+    const channelId = condition.broadcaster_user_id;
+
+    logger.warn(
+      `Subscription revoked: ${type} for channel ${channelId}. Status: ${status}`,
+      { service: "twitch-eventsub", payload },
+    );
+
+    if (status === "notification_failures_exceeded") {
+      logger.info(`Attempting to re-subscribe to ${type} for ${channelId}`, {
+        service: "twitch-eventsub",
+      });
+
+      const channel = config.channels.find((c) => c.twitchUserId === channelId);
+      if (!channel) {
+        logger.warn(
+          `Cannot re-subscribe: Channel ${channelId} not found in config`,
+          { service: "twitch-eventsub" },
+        );
+        return;
+      }
+
+      await this.subscribeToTopic(
+        channel,
+        {
+          name: type,
+          version: subscription.version,
+          condition: condition,
+        },
+        envConfig.twitch.clientId,
+        envConfig.twitch.appAccessToken,
+        envConfig.twitch.publicCallback,
+        envConfig.twitch.webhookSecret,
+      );
+    } else if (
+      status === "authorization_revoked" ||
+      status === "user_removed"
+    ) {
+      logger.error(
+        `Critical: Subscription revoked for ${type} on ${channelId} due to ${status}. Manual intervention required.`,
+        { service: "twitch-eventsub" },
+      );
+    }
+  }
+
+  private normalizeEvent(payload: any): TwitchEvent {
     const subscription = payload.subscription || {};
     const event = payload.event || {};
     const id = `${subscription.id || ""}:${event.id || Date.now()}`;
@@ -100,8 +146,8 @@ export class EventSubService {
     const channelId =
       event.broadcaster_user_id ||
       subscription.condition?.broadcaster_user_id ||
-      "unknown";
-    const channelLogin = event.broadcaster_user_login || "unknown";
+      undefined;
+    const channelLogin = event.broadcaster_user_login || undefined;
     const userId = event.user_id || undefined;
     const userLogin = event.user_login || undefined;
 

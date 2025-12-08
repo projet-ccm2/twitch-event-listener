@@ -6,8 +6,8 @@ import { secureId } from "../../utils/random";
 
 export class IrcService {
   private ws: WebSocket | null = null;
-  private ingestService: IngestService;
-  private joinedChannels: Set<string> = new Set();
+  private readonly ingestService: IngestService;
+  private readonly joinedChannels: Set<string> = new Set();
 
   private messageBuffer: any[] = [];
   private bufferTimer: NodeJS.Timeout | null = null;
