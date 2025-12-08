@@ -91,7 +91,7 @@ export class IrcService {
 
       if (line.includes("PRIVMSG")) {
         // Example: :user!user@user.tmi.twitch.tv PRIVMSG #channel :message content here
-        const match = line.match(/^:([^!]+)![^ ]+ PRIVMSG #([^ ]+) :(.*)$/);
+        const match = /^:([^!]+)![^ ]+ PRIVMSG #([^ ]+) :(.*)$/.exec(line);
         if (match) {
           const userLogin = match[1];
           const channel = match[2];
@@ -120,11 +120,9 @@ export class IrcService {
   private bufferMessage(event: any) {
     this.messageBuffer.push(event);
 
-    if (!this.bufferTimer) {
-      this.bufferTimer = setTimeout(() => {
-        this.flushBuffer();
-      }, config.chatBufferTime);
-    }
+    this.bufferTimer ??= setTimeout(() => {
+      this.flushBuffer();
+    }, config.chatBufferTime);
   }
 
   private flushBuffer() {

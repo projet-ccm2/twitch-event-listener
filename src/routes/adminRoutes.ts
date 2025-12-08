@@ -23,10 +23,8 @@ export function createAdminRouter(eventSubService: EventSubService) {
         twitchUserId: twitchUserId,
         login: login,
         scopes: body.scopes || [],
-        listenEventSub:
-          body.listenEventSub !== undefined ? !!body.listenEventSub : true,
-        listenChatIrc:
-          body.listenChatIrc !== undefined ? !!body.listenChatIrc : false,
+        listenEventSub: body.listenEventSub ?? true,
+        listenChatIrc: body.listenChatIrc ?? false,
         eventSubTopics: body.eventSubTopics || [],
       };
       appConfig.channels.push(newChannel);

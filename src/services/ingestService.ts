@@ -54,7 +54,7 @@ export class IngestService {
     const timestamp = rawEvent.timestamp || new Date().toISOString();
 
     let type = rawEvent.type || "unknown";
-    if (rawEvent.subscription && rawEvent.subscription.type) {
+    if (rawEvent.subscription?.type) {
       type = rawEvent.subscription.type;
     }
 
