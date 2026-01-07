@@ -23,16 +23,16 @@ jobs:
       cloud-run-service-name: twitch-event-listener-prod
 
     secrets:
-      GCP_SA_KEY: ${{ secrets.DEV_GCP_SA_KEY }}
-      GCP_PROJECT_ID: ${{ secrets.DEV_GCP_PROJECT_ID }}
+      GCP_SA_KEY: ${{ secrets.PROD_GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.PROD_GCP_PROJECT_ID }}
       TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
       NODE_ENV: ${{ secrets.NODE_ENV }}
       PORT: ${{ secrets.PORT }}
       USE_MOCK: ${{ secrets.USE_MOCK }}
-      DISPATCHER_URL: ${{ secrets.DISPATCHER_URL }}
-      DB_SERVICE_URL: ${{ secrets.DB_SERVICE_URL }}
+      DISPATCHER_URL: ${{ secrets.PROD_DISPATCHER_URL }}
+      DB_SERVICE_URL: ${{ secrets.PROD_DB_SERVICE_URL }}
       SYNC_INTERVAL_MS: ${{ secrets.SYNC_INTERVAL_MS }}
       ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
       TWITCH_APP_ACCESS_TOKEN: ${{ secrets.TWITCH_APP_ACCESS_TOKEN }}
       TWITCH_WEBHOOK_SECRET: ${{ secrets.TWITCH_WEBHOOK_SECRET }}
-      PUBLIC_EVENTSUB_CALLBACK: ${{ secrets.PUBLIC_EVENTSUB_CALLBACK }}
+      PUBLIC_EVENTSUB_CALLBACK: ${{ secrets.PROD_PUBLIC_EVENTSUB_CALLBACK }}
