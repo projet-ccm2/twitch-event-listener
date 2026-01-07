@@ -25,7 +25,7 @@ jobs:
       docker-image-name: twitch-event-listener-api-dev
       docker-tag: ${{ github.event.inputs.image-tag || format('dev-{0}', github.sha) }}
       artifact-registry-repository: "twitch-event-listener-docker-dev"
-      environment: development
+      environment: production
       cloud-run-service-name: twitch-event-listener-dev
     secrets:
       GCP_SA_KEY: ${{ secrets.DEV_GCP_SA_KEY }}
