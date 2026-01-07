@@ -25,9 +25,19 @@ jobs:
       docker-image-name: twitch-event-listener-api-dev
       docker-tag: ${{ github.event.inputs.image-tag || format('dev-{0}', github.sha) }}
       artifact-registry-repository: "twitch-event-listener-docker-dev"
-      environment: development
+      environment: production
       cloud-run-service-name: twitch-event-listener-dev
     secrets:
       GCP_SA_KEY: ${{ secrets.DEV_GCP_SA_KEY }}
       GCP_PROJECT_ID: ${{ secrets.DEV_GCP_PROJECT_ID }}
       TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+      NODE_ENV: ${{ secrets.NODE_ENV }}
+      PORT: ${{ secrets.PORT }}
+      USE_MOCK: ${{ secrets.USE_MOCK }}
+      DISPATCHER_URL: ${{ secrets.DISPATCHER_URL }}
+      DB_SERVICE_URL: ${{ secrets.DB_SERVICE_URL }}
+      SYNC_INTERVAL_MS: ${{ secrets.SYNC_INTERVAL_MS }}
+      ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+      TWITCH_APP_ACCESS_TOKEN: ${{ secrets.TWITCH_APP_ACCESS_TOKEN }}
+      TWITCH_WEBHOOK_SECRET: ${{ secrets.TWITCH_WEBHOOK_SECRET }}
+      PUBLIC_EVENTSUB_CALLBACK: ${{ secrets.PUBLIC_EVENTSUB_CALLBACK }}
