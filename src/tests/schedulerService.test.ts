@@ -3,11 +3,11 @@ import { ChannelConfig } from "../models/channel";
 import { config } from "../config/config";
 
 class MockEventSub {
-  subscribeAll = jest.fn(async () => {});
+  subscribeAll = jest.fn(async () => { });
 }
 
 class MockIrc {
-  updateSubscriptions = jest.fn(() => {});
+  updateSubscriptions = jest.fn(() => { });
 }
 
 describe("SchedulerService", () => {
@@ -42,6 +42,8 @@ describe("SchedulerService", () => {
     await svc.start();
 
     // first immediate sync
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(es.subscribeAll).toHaveBeenCalledTimes(1);
