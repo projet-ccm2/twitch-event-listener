@@ -43,6 +43,8 @@ describe("SchedulerService", () => {
 
     // first immediate sync
     await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(es.subscribeAll).toHaveBeenCalledTimes(1);
     expect(irc.updateSubscriptions).toHaveBeenCalledTimes(1);

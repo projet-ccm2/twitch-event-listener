@@ -27,6 +27,8 @@ jobs:
       artifact-registry-repository: "twitch-event-listener-docker-dev"
       environment: production
       cloud-run-service-name: twitch-event-listener-dev
+      cloud-run-min-instances: "1"
+      cloud-run-max-instances: "1"
     secrets:
       GCP_SA_KEY: ${{ secrets.DEV_GCP_SA_KEY }}
       GCP_PROJECT_ID: ${{ secrets.DEV_GCP_PROJECT_ID }}

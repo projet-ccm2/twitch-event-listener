@@ -197,7 +197,7 @@ Ajouter manuellement une chaîne à écouter (utile pour le debug ou l'ajout imm
 ## 📦 Format de Sortie (Vers Dispatcher)
 
 Votre API (`DISPATCHER_URL`) recevra des requêtes `POST` avec le corps suivant.
-Note : Peut être un objet unique ou un tableau d'objets (batch).
+**Note : Le payload est TOUJOURS un tableau JSON (Array).**
 
 ### Structure `TwitchEvent`
 
@@ -220,44 +220,40 @@ interface TwitchEvent {
 }
 ```
 
-### Exemple : Message de Chat
+### Exemple : Batch Mixte (Chat + Follow)
 
 ```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "source": "irc",
-  "type": "message",
-  "timestamp": "2023-10-27T10:05:00.000Z",
-  "version": "1.0",
-  "channelLogin": "mon_streamer",
-  "userLogin": "viewer_sympa",
-  "payload": {
-    "message": "Hello world!",
-    "raw": ":viewer_sympa!...! PRIVMSG #mon_streamer :Hello world!"
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "source": "irc",
+    "type": "message",
+    "timestamp": "2023-10-27T10:05:00.000Z",
+    "version": "1.0",
+    "channelLogin": "mon_streamer",
+    "userLogin": "viewer_sympa",
+    "payload": {
+      "message": "Hello world!",
+      "raw": ":viewer_sympa!...! PRIVMSG #mon_streamer :Hello world!"
+    }
+  },
+  {
+    "id": "eventsub-subscription-id:event-id",
+    "source": "eventsub",
+    "type": "channel.follow",
+    "timestamp": "2023-10-27T10:06:00.000Z",
+    "version": "1.0",
+    "channelId": "12345678",
+    "channelLogin": "mon_streamer",
+    "userId": "87654321",
+    "userLogin": "nouveau_follower",
+    "payload": {
+      "user_id": "87654321",
+      "user_login": "nouveau_follower",
+      "broadcaster_user_id": "12345678"
+    }
   }
-}
-```
-
-### Exemple : Follow (EventSub)
-
-```json
-{
-  "id": "eventsub-subscription-id:event-id",
-  "source": "eventsub",
-  "type": "channel.follow",
-  "timestamp": "2023-10-27T10:06:00.000Z",
-  "version": "1.0",
-  "channelId": "12345678",
-  "channelLogin": "mon_streamer",
-  "userId": "87654321",
-  "userLogin": "nouveau_follower",
-  "payload": {
-    "user_id": "87654321",
-    "user_login": "nouveau_follower",
-    "broadcaster_user_id": "12345678",
-    ...
-  }
-}
+]
 ```
 
 ---

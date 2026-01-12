@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import { config } from "../../config/config";
+import { config as envConfig } from "../../config/environment";
 import { IngestService } from "../ingestService";
 import { logger } from "../../utils/logger";
 import { secureId } from "../../utils/random";
@@ -30,11 +31,11 @@ export class IrcService {
 
     this.ws.on("open", () => {
       logger.info("Connected to Twitch IRC", { service: "twitch-irc" });
-      // Use config.twitch.ircPassword and config.twitch.ircNick if provided, else default to anonymous
+      // Use envConfig.twitch.ircPassword and envConfig.twitch.ircNick
       // For anonymous, read-only access, password should be 'SCHMOOPIIE' and nick 'justinfan12345'
       // For authenticated access, password should be 'oauth:<token>' and nick your Twitch username
-      const ircPassword = config.twitch?.ircPassword || "SCHMOOPIIE";
-      const ircNick = config.twitch?.ircNick || "justinfan12345";
+      const ircPassword = envConfig.twitch.ircPassword;
+      const ircNick = envConfig.twitch.ircNick;
       this.ws?.send(`PASS ${ircPassword}`);
       this.ws?.send(`NICK ${ircNick}`);
       this.updateSubscriptions();
@@ -146,6 +147,18 @@ export class IrcService {
       this.bufferTimer = null;
     }
   }
+  public shutdown() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+    if (this.bufferTimer) {
+      clearTimeout(this.bufferTimer);
+      this.bufferTimer = null;
+    }
+    this.ingestService.shutdown();
+  }
+
   protected createSocket(url: string): WebSocket {
     return new WebSocket(url);
   }

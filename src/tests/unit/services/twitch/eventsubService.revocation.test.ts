@@ -42,6 +42,10 @@ describe("EventSubService revocation handling", () => {
     (svc as any).subscribeToTopic = jest.fn().mockResolvedValue(undefined);
   });
 
+  afterEach(() => {
+    svc.shutdown();
+  });
+
   test("handleRevocation handles notification_failures_exceeded (re-subscribe)", async () => {
     const payload = {
       subscription: {

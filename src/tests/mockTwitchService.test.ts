@@ -1,8 +1,9 @@
-const handleEventMock = jest.fn();
+const mockHandleEvent = jest.fn();
 
 jest.mock("../services/ingestService", () => ({
   IngestService: class {
-    handleEvent = handleEventMock;
+    handleEvent = mockHandleEvent;
+    shutdown = jest.fn();
   },
 }));
 
@@ -15,7 +16,7 @@ describe("TwitchService mock generator", () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    handleEventMock.mockClear();
+    mockHandleEvent.mockClear();
     config.channels = [
       {
         twitchUserId: "abc",
@@ -39,11 +40,11 @@ describe("TwitchService mock generator", () => {
     const svc = new TwitchService();
     svc.start();
     jest.advanceTimersByTime(6);
-    expect(handleEventMock).toHaveBeenCalled();
+    expect(mockHandleEvent).toHaveBeenCalled();
     svc.stop();
-    const calls = handleEventMock.mock.calls.length;
+    const calls = mockHandleEvent.mock.calls.length;
     jest.advanceTimersByTime(50);
-    expect(handleEventMock.mock.calls.length).toBe(calls);
+    expect(mockHandleEvent.mock.calls.length).toBe(calls);
   });
 
   test("start is idempotent", () => {
@@ -51,6 +52,7 @@ describe("TwitchService mock generator", () => {
     svc.start();
     svc.start();
     jest.advanceTimersByTime(6);
-    expect(handleEventMock).toHaveBeenCalledTimes(1);
+    expect(mockHandleEvent).toHaveBeenCalledTimes(1);
+    svc.stop();
   });
 });

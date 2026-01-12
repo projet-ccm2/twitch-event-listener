@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 import { config } from "../../../../config/config";
-import { config as envConfig } from "../../../../config/environment";
 import https from "node:https";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 jest.mock("node:https");
 
@@ -13,6 +12,10 @@ describe("EventSubService subscription", () => {
   beforeEach(() => {
     svc = new EventSubService();
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    svc.shutdown();
   });
 
   const mockRequest = (statusCode: number, responseBody: string = "") => {
@@ -75,6 +78,10 @@ describe("EventSubService normalizeEvent", () => {
 
   beforeEach(() => {
     svc = new EventSubService();
+  });
+
+  afterEach(() => {
+    svc.shutdown();
   });
 
   test("normalizes event with missing fields", () => {

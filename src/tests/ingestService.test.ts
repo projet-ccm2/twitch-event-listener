@@ -19,11 +19,18 @@ describe("IngestService", () => {
       event: { foo: "bar" },
     });
 
+    await svc.flush();
+
     expect(dispatched).toHaveLength(1);
-    const e = dispatched[0];
+    const batch = dispatched[0];
+    expect(Array.isArray(batch)).toBe(true);
+    expect(batch).toHaveLength(1);
+    const e = batch[0];
     expect(e.id).toBe("evt1");
     expect(e.type).toBe("channel.follow");
+    expect(e.type).toBe("channel.follow");
     expect(e.payload).toEqual({ foo: "bar" });
+    svc.shutdown();
   });
 
   test("handleBatch normalizes and dispatches array", async () => {
@@ -37,12 +44,15 @@ describe("IngestService", () => {
       { id: "b", event: { b: 2 } },
     ]);
 
+    await svc.flush();
+
     expect(fakeDispatcher.dispatch).toHaveBeenCalledTimes(1);
     const [arg] = (fakeDispatcher.dispatch as jest.Mock).mock.calls[0];
     expect(Array.isArray(arg)).toBe(true);
     expect(arg).toHaveLength(2);
     expect(arg[0].id).toBe("a");
     expect(arg[1].id).toBe("b");
+    svc.shutdown();
   });
 
   test("errors are logged when dispatch throws", async () => {
@@ -58,6 +68,8 @@ describe("IngestService", () => {
     const svc = new IngestService(fakeDispatcher as DispatcherService);
 
     await svc.handleEvent({ id: "x" });
+    await svc.flush();
     expect(errSpy).toHaveBeenCalled();
+    svc.shutdown();
   });
 });
