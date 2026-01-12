@@ -70,7 +70,7 @@ describe("IrcService", () => {
 });
 
 describe("IrcService message buffering", () => {
-  const handleBatchMock = jest.fn(async (_batch: any[]) => { });
+  const handleBatchMock = jest.fn(async (_batch: any[]) => {});
 
   beforeEach(() => {
     jest.useFakeTimers();

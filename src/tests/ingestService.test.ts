@@ -35,7 +35,7 @@ describe("IngestService", () => {
 
   test("handleBatch normalizes and dispatches array", async () => {
     const fakeDispatcher: Pick<DispatcherService, "dispatch"> = {
-      dispatch: jest.fn(async () => { }),
+      dispatch: jest.fn(async () => {}),
     };
     const svc = new IngestService(fakeDispatcher as DispatcherService);
 

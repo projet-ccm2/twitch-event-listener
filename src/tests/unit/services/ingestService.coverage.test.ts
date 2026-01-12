@@ -38,7 +38,7 @@ describe("IngestService Coverage", () => {
 
     expect(errorSpy).toHaveBeenCalledWith(
       "Failed to dispatch global batch",
-      expect.objectContaining({ error: expect.any(Error) })
+      expect.objectContaining({ error: expect.any(Error) }),
     );
   });
 
@@ -67,8 +67,8 @@ describe("IngestService Coverage", () => {
           id: expect.any(String),
           timestamp: expect.any(String),
           type: "test",
-        })
-      ])
+        }),
+      ]),
     );
   });
 
@@ -86,7 +86,7 @@ describe("IngestService Coverage", () => {
         expect.objectContaining({
           type: "channel.follow",
         }),
-      ])
+      ]),
     );
   });
 });
