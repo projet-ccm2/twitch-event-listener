@@ -29,6 +29,7 @@ export class TwitchService {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
+    this.ingestService.shutdown();
     this.isRunning = false;
     logger.info("Stopped Mock Twitch Service", { service: "twitch-mock" });
   }

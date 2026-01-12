@@ -147,6 +147,18 @@ export class IrcService {
       this.bufferTimer = null;
     }
   }
+  public shutdown() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+    if (this.bufferTimer) {
+      clearTimeout(this.bufferTimer);
+      this.bufferTimer = null;
+    }
+    this.ingestService.shutdown();
+  }
+
   protected createSocket(url: string): WebSocket {
     return new WebSocket(url);
   }

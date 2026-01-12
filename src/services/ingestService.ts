@@ -11,7 +11,7 @@ export class IngestService {
 
   constructor(dispatcher?: DispatcherService) {
     this.dispatcher = dispatcher || new DispatcherService();
-    this.startFlushInterval();
+    // Don't start interval automatically - it will start on first event
   }
 
   private startFlushInterval() {
@@ -34,6 +34,7 @@ export class IngestService {
         eventType: normalizedEvent.type,
       });
       this.eventBuffer.push(normalizedEvent);
+      this.startFlushInterval(); // Ensure interval is started
     } catch (err) {
       logger.error("Failed to buffer event", {
         service: "twitch-notification-handler",
@@ -51,6 +52,7 @@ export class IngestService {
         count: normalizedEvents.length,
       });
       this.eventBuffer.push(...normalizedEvents);
+      this.startFlushInterval(); // Ensure interval is started
     } catch (err) {
       logger.error("Failed to buffer batch", {
         service: "twitch-notification-handler",
@@ -105,5 +107,11 @@ export class IngestService {
       userId: rawEvent.userId,
       userLogin: rawEvent.userLogin,
     };
+  }
+  public shutdown() {
+    if (this.flushInterval) {
+      clearInterval(this.flushInterval);
+      this.flushInterval = null;
+    }
   }
 }

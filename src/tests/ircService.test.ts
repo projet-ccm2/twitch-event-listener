@@ -28,6 +28,7 @@ describe("IrcService", () => {
     const fakeWs: any = {
       readyState: 1, // OPEN
       send: jest.fn(),
+      close: jest.fn(),
     };
     // Inject fake ws
     (svc as any).ws = fakeWs;
@@ -39,6 +40,7 @@ describe("IrcService", () => {
     expect(fakeWs.send).toHaveBeenCalledWith("JOIN #joinme");
     // restore
     config.channels = original;
+    svc.shutdown();
   });
 
   test("updateSubscriptions does not join if already joined", () => {
@@ -55,7 +57,7 @@ describe("IrcService", () => {
     ] as any;
 
     const svc = new IrcService();
-    const fakeWs: any = { readyState: 1, send: jest.fn() };
+    const fakeWs: any = { readyState: 1, send: jest.fn(), close: jest.fn() };
     (svc as any).ws = fakeWs;
     (svc as any).joinedChannels.add("joined");
 
@@ -63,11 +65,12 @@ describe("IrcService", () => {
 
     expect(fakeWs.send).not.toHaveBeenCalled();
     config.channels = original;
+    svc.shutdown();
   });
 });
 
 describe("IrcService message buffering", () => {
-  const handleBatchMock = jest.fn(async (_batch: any[]) => {});
+  const handleBatchMock = jest.fn(async (_batch: any[]) => { });
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -84,6 +87,7 @@ describe("IrcService message buffering", () => {
     jest.doMock("../services/ingestService", () => ({
       IngestService: class {
         handleBatch = handleBatchMock;
+        shutdown = jest.fn();
       },
     }));
 
@@ -95,7 +99,7 @@ describe("IrcService message buffering", () => {
 
     const svc = new IrcSvc();
     // Inject fake ws only to satisfy potential usage
-    (svc as any).ws = { readyState: 1, send: jest.fn() };
+    (svc as any).ws = { readyState: 1, send: jest.fn(), close: jest.fn() };
 
     // Simulate incoming PRIVMSG
     (svc as any).handleMessage(":user!u@h PRIVMSG #chan :hello world\r\n");
@@ -108,6 +112,7 @@ describe("IrcService message buffering", () => {
     expect(Array.isArray(batch)).toBe(true);
     expect(batch.length).toBe(1);
     expect(batch[0].payload.message).toBe("hello world");
+    svc.shutdown();
   });
 });
 
@@ -128,6 +133,12 @@ describe("IrcService connection and handling", () => {
     jest.spyOn(svc as any, "createSocket").mockReturnValue(fakeWs);
   });
 
+  afterEach(() => {
+    if (svc) {
+      svc.shutdown();
+    }
+  });
+
   test("connect creates websocket and sets up listeners", () => {
     svc.connect();
     expect((svc as any).createSocket).toHaveBeenCalled();
@@ -138,7 +149,7 @@ describe("IrcService connection and handling", () => {
   });
 
   test("does not connect if already connected", () => {
-    (svc as any).ws = { readyState: 1 }; // OPEN
+    (svc as any).ws = { readyState: 1, close: jest.fn() }; // OPEN
     svc.connect();
     expect((svc as any).createSocket).not.toHaveBeenCalled();
   });
@@ -189,7 +200,7 @@ describe("IrcService connection and handling", () => {
     )[1];
 
     const connectSpy = jest.spyOn(svc, "connect");
-    (svc as any).ws = { readyState: 3 }; // CLOSED
+    (svc as any).ws = { readyState: 3, close: jest.fn() }; // CLOSED
 
     closeHandler();
 

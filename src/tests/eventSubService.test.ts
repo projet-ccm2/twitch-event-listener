@@ -1,11 +1,13 @@
 /* eslint-disable camelcase */
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 // Mock IngestService so EventSubService will use it
-const handleEventMock = jest.fn(async () => {});
+// Mock IngestService so EventSubService will use it
+const mockHandleEvent = jest.fn(async () => { });
 jest.mock("../services/ingestService", () => ({
   IngestService: class {
-    handleEvent = handleEventMock;
+    handleEvent = mockHandleEvent;
+    shutdown = jest.fn();
   },
 }));
 
@@ -21,13 +23,19 @@ const mockRes = () => {
 };
 
 describe("EventSubService webhook handling", () => {
+  let svc: EventSubService;
+
   beforeEach(() => {
-    handleEventMock.mockClear();
+    mockHandleEvent.mockClear();
     envConfig.twitch.webhookSecret = "secret";
+    svc = new EventSubService();
+  });
+
+  afterEach(() => {
+    svc.shutdown();
   });
 
   test("rejects when headers missing", async () => {
-    const svc = new EventSubService();
     const req: any = { header: () => undefined, body: {} };
     const res = mockRes();
     await svc.handleWebhook(req, res);
@@ -35,7 +43,6 @@ describe("EventSubService webhook handling", () => {
   });
 
   test("verifies signature and processes notification", async () => {
-    const svc = new EventSubService();
     const body = {
       subscription: { id: "sub1", type: "channel.follow" },
       event: { id: "e1", broadcaster_user_id: "c1" },
@@ -62,11 +69,10 @@ describe("EventSubService webhook handling", () => {
     const res = mockRes();
     await svc.handleWebhook(req, res);
     expect(res.status).toHaveBeenCalledWith(202);
-    expect(handleEventMock).toHaveBeenCalled();
+    expect(mockHandleEvent).toHaveBeenCalled();
   });
 
   test("verification challenge is returned", async () => {
-    const svc = new EventSubService();
     const payload = { challenge: "abc" };
     const bodyStr = JSON.stringify(payload);
     const messageId = "mid2";
@@ -97,7 +103,6 @@ describe("EventSubService webhook handling", () => {
   });
 
   test("revocation returns 200 and does not call ingest", async () => {
-    const svc = new EventSubService();
     const bodyStr = JSON.stringify({
       subscription: {
         id: "sub_revoked",
@@ -129,11 +134,10 @@ describe("EventSubService webhook handling", () => {
     const res = mockRes();
     await svc.handleWebhook(req, res);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(handleEventMock).not.toHaveBeenCalled();
+    expect(mockHandleEvent).not.toHaveBeenCalled();
   });
 
   test("invalid signature returns 403", async () => {
-    const svc = new EventSubService();
     const req: any = {
       header: (name: string) =>
         (
