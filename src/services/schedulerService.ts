@@ -4,6 +4,14 @@ import { config } from "../config/config";
 import { ChannelConfig } from "../models/channel";
 import { logger } from "../utils/logger";
 
+interface DbUser {
+  id: string;
+  username: string;
+  profileImageUrl: string | null;
+  channelDescription: string | null;
+  scope: string;
+}
+
 export class SchedulerService {
   private readonly eventSubService: EventSubService;
   private readonly ircService: IrcService;
@@ -36,13 +44,52 @@ export class SchedulerService {
 
   private async syncListeners() {
     try {
-      const response = await fetch(config.dbServiceUrl);
+      const baseUrl = config.dbServiceUrl.endsWith("/")
+        ? config.dbServiceUrl
+        : `${config.dbServiceUrl}/`;
+      const url = `${baseUrl}users`;
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`DB Service returned ${response.status}`);
       }
 
-      // Immediately refresh downstream services upon a successful response
-      const channels: ChannelConfig[] = await response.json();
+      const users: DbUser[] = await response.json();
+
+      const channels: ChannelConfig[] = users.map((user) => {
+        const decodedScope = user.scope ? decodeURIComponent(user.scope) : "";
+        const scopesArray = decodedScope.split(" ").filter(Boolean);
+
+        return {
+          twitchUserId: user.id,
+          login: user.username,
+          scopes: scopesArray,
+          listenEventSub: true,
+          listenChatIrc: true,
+          eventSubTopics: [
+            "channel.follow",
+            "stream.online",
+            "channel.subscribe",
+            "channel.cheer",
+            "channel.channel_points_custom_reward_redemption.add",
+            "channel.hype_train.begin",
+            "channel.hype_train.progress",
+            "channel.hype_train.end",
+            "channel.poll.begin",
+            "channel.poll.progress",
+            "channel.poll.end",
+            "channel.prediction.begin",
+            "channel.prediction.progress",
+            "channel.prediction.lock",
+            "channel.prediction.end",
+            "channel.charity_campaign.donate",
+            "channel.charity_campaign.start",
+            "channel.charity_campaign.progress",
+            "channel.charity_campaign.stop",
+          ],
+        };
+      });
+
       config.channels = channels;
 
       logger.info("Triggering EventSub subscribeAll", {
