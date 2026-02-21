@@ -85,7 +85,7 @@ export class SchedulerService {
             "channel.charity_campaign.donate",
             "channel.charity_campaign.start",
             "channel.charity_campaign.progress",
-            "channel.charity_campaign.stop"
+            "channel.charity_campaign.stop",
           ],
         };
       });
