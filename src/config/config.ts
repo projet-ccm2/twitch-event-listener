@@ -22,7 +22,7 @@ export const config = {
   channels: loadChannels(),
   eventFrequencyMs: 5000,
   dispatcherUrl: process.env.DISPATCHER_URL || "http://localhost:4000/events",
-  dbServiceUrl: process.env.DB_SERVICE_URL || "http://localhost:5000/listeners",
+  dbServiceUrl: process.env.DB_SERVICE_URL || "http://localhost:5000",
   syncIntervalMs: Number.parseInt(process.env.SYNC_INTERVAL_MS || "60000", 10),
   chatBufferTime: Number.parseInt(process.env.CHAT_BUFFER_TIME || "5000", 10),
   twitch: {
