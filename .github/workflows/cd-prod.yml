@@ -23,6 +23,7 @@ jobs:
       cloud-run-service-name: twitch-event-listener-prod
       cloud-run-min-instances: "1"
       cloud-run-max-instances: "1"
+      required_env_vars: GCP_SA_KEY,GCP_PROJECT_ID,TWITCH_CLIENT_ID,USE_MOCK,DISPATCHER_URL,DB_SERVICE_URL,SYNC_INTERVAL_MS,ALLOWED_ORIGINS,TWITCH_APP_ACCESS_TOKEN,TWITCH_WEBHOOK_SECRET,PUBLIC_EVENTSUB_CALLBACK
 
     secrets:
       GCP_SA_KEY: ${{ secrets.PROD_GCP_SA_KEY }}
