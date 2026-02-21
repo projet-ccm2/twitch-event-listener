@@ -77,7 +77,6 @@ describe("Server Coverage Tests", () => {
 
     jest.doMock("../../routes/metricsRoutes", () => jest.fn());
     jest.doMock("../../routes/webhooksRoutes", () => jest.fn());
-    jest.doMock("../../routes/adminRoutes", () => jest.fn());
     jest.doMock("../../services/twitch/mockTwitchService", () => ({
       TwitchService: jest.fn().mockImplementation(() => ({
         start: jest.fn(),

@@ -9,7 +9,6 @@ import { IrcService } from "./services/twitch/ircService";
 
 import { SchedulerService } from "./services/schedulerService";
 import createWebhookRouter from "./routes/webhooksRoutes";
-import createAdminRouter from "./routes/adminRoutes";
 import { loggerMiddleware } from "./middlewares/loggerMiddleware";
 import { logger } from "./utils/logger";
 
@@ -96,7 +95,6 @@ if (useMock) {
   }
 
   app.use(createWebhookRouter(eventSubService));
-  app.use(createAdminRouter(eventSubService));
 }
 
 if (envConfig.nodeEnv !== "test") {

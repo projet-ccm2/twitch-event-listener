@@ -20,7 +20,6 @@ jest.mock("../../config/environment", () => ({
 
 jest.mock("../../routes/metricsRoutes", () => jest.fn());
 jest.mock("../../routes/webhooksRoutes", () => jest.fn());
-jest.mock("../../routes/adminRoutes", () => jest.fn());
 jest.mock("../../services/twitch/mockTwitchService", () => ({
   TwitchService: jest.fn().mockImplementation(() => ({
     start: jest.fn(),
