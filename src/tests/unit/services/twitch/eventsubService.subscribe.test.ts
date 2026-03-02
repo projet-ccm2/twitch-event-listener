@@ -1,10 +1,9 @@
 /* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 import { config } from "../../../../config/config";
-import https from "node:https";
-import { EventEmitter } from "node:events";
 
-jest.mock("node:https");
+// Mock global fetch
+global.fetch = jest.fn();
 
 describe("EventSubService subscription", () => {
   let svc: EventSubService;
@@ -19,56 +18,39 @@ describe("EventSubService subscription", () => {
   });
 
   const mockRequest = (statusCode: number, responseBody: string = "") => {
-    const req = new EventEmitter() as any;
-    req.write = jest.fn();
-    req.end = jest.fn();
-
-    (https.request as jest.Mock).mockImplementation((options, callback) => {
-      const res = new EventEmitter() as any;
-      res.statusCode = statusCode;
-      callback(res);
-      res.emit("data", responseBody);
-      res.emit("end");
-      return req;
+    (global.fetch as jest.Mock).mockResolvedValue({
+      status: statusCode,
+      text: jest.fn().mockResolvedValue(responseBody),
     });
-
-    return req;
   };
 
   test("subscribeToTopic handles success (202)", async () => {
     mockRequest(202);
     const channel = config.channels[0];
     await svc.subscribeChannel(channel);
-    expect(https.request).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalled();
   });
 
   test("subscribeToTopic handles already exists (409)", async () => {
     mockRequest(409);
     const channel = config.channels[0];
     await svc.subscribeChannel(channel);
-    expect(https.request).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalled();
   });
 
   test("subscribeToTopic handles failure (400)", async () => {
     mockRequest(400, "Bad Request");
     const channel = config.channels[0];
     await svc.subscribeChannel(channel);
-    expect(https.request).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalled();
   });
 
   test("subscribeToTopic handles network error", async () => {
-    const req = new EventEmitter() as any;
-    req.write = jest.fn();
-    req.end = jest.fn();
-
-    (https.request as jest.Mock).mockImplementation((options, callback) => {
-      return req;
-    });
+    (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
 
     const channel = config.channels[0];
     const promise = svc.subscribeChannel(channel);
 
-    req.emit("error", new Error("Network error"));
     await promise; // Should not throw
   });
 });
