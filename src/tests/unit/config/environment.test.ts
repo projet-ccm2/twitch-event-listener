@@ -3,6 +3,7 @@ describe("Environment Configuration", () => {
 
   beforeEach(() => {
     jest.resetModules();
+    jest.mock("dotenv", () => ({ config: jest.fn() }));
     process.env = { ...originalEnv };
   });
 
@@ -19,7 +20,7 @@ describe("Environment Configuration", () => {
       const { config } = require("../../../config/environment");
 
       expect(config.port).toBe(3000);
-      expect(config.nodeEnv).toBe("development");
+      expect(config.nodeEnv).toBe("local");
       expect(config.cors.allowedOrigins).toEqual(["*"]);
     });
 

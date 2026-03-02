@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { ChannelConfig } from "../models/channel";
 
-const env = process.env.NODE_ENV || "development";
+const env = process.env.NODE_ENV || "local";
 
 const loadChannels = (): ChannelConfig[] => {
   const filePath = path.join(__dirname, env, "channels.json");

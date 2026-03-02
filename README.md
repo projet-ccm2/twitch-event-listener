@@ -56,19 +56,19 @@ graph TD
 
 ### Variables d'Environnement (`.env`)
 
-| Variable                   | Description                                         | Défaut                            |
-| :------------------------- | :-------------------------------------------------- | :-------------------------------- |
-| `NODE_ENV`                 | Environnement (`development`, `production`, `test`) | `development`                     |
-| `PORT`                     | Port du serveur HTTP                                | `3000`                            |
-| `USE_MOCK`                 | Activer le mode simulation (`true`/`false`)         | `false`                           |
-| `DISPATCHER_URL`           | URL de votre API qui recevra les événements         | `http://localhost:4000/events`    |
-| `DB_SERVICE_URL`           | URL pour récupérer la config des chaînes (Prod)     | `http://localhost:5000/listeners` |
-| `SYNC_INTERVAL_MS`         | Fréquence de synchro avec DB Service (ms)           | `60000` (1min)                    |
-| `CHAT_BUFFER_TIME`         | Temps de buffer pour les messages IRC (ms)          | `5000`                            |
-| `TWITCH_CLIENT_ID`         | Client ID Twitch (Requis si !Mock)                  | -                                 |
-| `TWITCH_APP_ACCESS_TOKEN`  | App Token Twitch (Requis si !Mock)                  | -                                 |
-| `TWITCH_WEBHOOK_SECRET`    | Secret pour signer les webhooks                     | -                                 |
-| `PUBLIC_EVENTSUB_CALLBACK` | URL publique de ce service (ex: ngrok)              | -                                 |
+| Variable                   | Description                                     | Défaut                            |
+| :------------------------- | :---------------------------------------------- | :-------------------------------- |
+| `NODE_ENV`                 | Environnement (`local`, `production`, `test`)   | `local`                           |
+| `PORT`                     | Port du serveur HTTP                            | `3000`                            |
+| `USE_MOCK`                 | Activer le mode simulation (`true`/`false`)     | `false`                           |
+| `DISPATCHER_URL`           | URL de votre API qui recevra les événements     | `http://localhost:4000/events`    |
+| `DB_SERVICE_URL`           | URL pour récupérer la config des chaînes (Prod) | `http://localhost:5000/listeners` |
+| `SYNC_INTERVAL_MS`         | Fréquence de synchro avec DB Service (ms)       | `60000` (1min)                    |
+| `CHAT_BUFFER_TIME`         | Temps de buffer pour les messages IRC (ms)      | `5000`                            |
+| `TWITCH_CLIENT_ID`         | Client ID Twitch (Requis si !Mock)              | -                                 |
+| `TWITCH_APP_ACCESS_TOKEN`  | App Token Twitch (Requis si !Mock)              | -                                 |
+| `TWITCH_WEBHOOK_SECRET`    | Secret pour signer les webhooks                 | -                                 |
+| `PUBLIC_EVENTSUB_CALLBACK` | URL publique de ce service (ex: ngrok)          | -                                 |
 
 ### Exemples de fichiers .env
 
@@ -77,7 +77,7 @@ graph TD
 Idéal pour tester en local sans connexion Twitch ni credentials.
 
 ```env
-NODE_ENV=development
+NODE_ENV=local
 PORT=3000
 USE_MOCK=true
 DISPATCHER_URL=http://localhost:4000/events
@@ -106,7 +106,7 @@ PUBLIC_EVENTSUB_CALLBACK=https://mon-domaine-public.com
 
 ### Configuration des Chaînes
 
-- **Développement** : Fichier `src/config/development/channels.json`.
+- **Développement** : Fichier `src/config/local/channels.json`.
 - **Production** : Via `DB_SERVICE_URL`. Le service attend une réponse JSON avec ce format :
 
 ```json
@@ -277,7 +277,7 @@ npm install
 npm run dev
 ```
 
-- Charge la config depuis `src/config/development/channels.json`.
+- Charge la config depuis `src/config/local/channels.json`.
 - Si `USE_MOCK=true`, génère de faux événements.
 
 ### Mode Production

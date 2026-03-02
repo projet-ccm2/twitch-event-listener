@@ -9,7 +9,8 @@ RUN npm install
 
 COPY src ./src
 
-RUN npm run build
+RUN npm run build && \
+    cp -r src/config dist/
 
 EXPOSE 3000
 

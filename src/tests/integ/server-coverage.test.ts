@@ -23,8 +23,8 @@ describe("Server Coverage Tests", () => {
     jest.resetModules();
   });
 
-  it("should test server startup logic in development environment", () => {
-    process.env.NODE_ENV = "development";
+  it("should test server startup logic in local environment", () => {
+    process.env.NODE_ENV = "local";
     process.env.PORT = "3000";
 
     const mockServer = {
@@ -68,7 +68,7 @@ describe("Server Coverage Tests", () => {
 
     jest.doMock("../../config/environment", () => ({
       config: {
-        nodeEnv: "development",
+        nodeEnv: "local",
         port: 3000,
         useMock: false,
         cors: { allowedOrigins: ["*"] },
@@ -101,7 +101,7 @@ describe("Server Coverage Tests", () => {
 
     require("../../index");
 
-    expect(process.env.NODE_ENV).toBe("development");
+    expect(process.env.NODE_ENV).toBe("local");
   });
 
   it("should test signal handler registration logic", () => {
@@ -166,7 +166,7 @@ describe("Server Coverage Tests", () => {
     };
 
     const port = 3000;
-    const environment = "development";
+    const environment = "local";
 
     mockApp.listen(port, () => {
       mockLogger.info(`Server started on port ${port}`, {
