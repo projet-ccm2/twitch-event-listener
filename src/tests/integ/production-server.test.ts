@@ -1,5 +1,3 @@
-import { Server } from "http";
-
 jest.mock("../../utils/logger", () => ({
   logger: {
     info: jest.fn(),

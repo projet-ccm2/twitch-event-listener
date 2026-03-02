@@ -11,7 +11,7 @@ export class IrcService {
   private readonly joinedChannels: Set<string> = new Set();
 
   private messageBuffer: any[] = [];
-  private bufferTimer: NodeJS.Timeout | null = null;
+  private bufferTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.ingestService = new IngestService();

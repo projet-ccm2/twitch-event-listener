@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
-import { config } from "../../../../config/config";
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -24,32 +23,39 @@ describe("EventSubService subscription", () => {
     });
   };
 
+  const mockChannel = {
+    login: "testuser",
+    twitchUserId: "12345",
+    listenEventSub: true,
+    listenChatIrc: true,
+    eventSubTopics: ["channel.follow"],
+    scopes: [],
+  };
+
   test("subscribeToTopic handles success (202)", async () => {
     mockRequest(202);
-    const channel = config.channels[0];
-    await svc.subscribeChannel(channel);
-    expect(global.fetch).toHaveBeenCalled();
+    await svc.subscribeChannel(mockChannel);
+    expect(globalThis.fetch).toHaveBeenCalled();
   });
 
   test("subscribeToTopic handles already exists (409)", async () => {
     mockRequest(409);
-    const channel = config.channels[0];
-    await svc.subscribeChannel(channel);
-    expect(global.fetch).toHaveBeenCalled();
+    await svc.subscribeChannel(mockChannel);
+    expect(globalThis.fetch).toHaveBeenCalled();
   });
 
   test("subscribeToTopic handles failure (400)", async () => {
     mockRequest(400, "Bad Request");
-    const channel = config.channels[0];
-    await svc.subscribeChannel(channel);
-    expect(global.fetch).toHaveBeenCalled();
+    await svc.subscribeChannel(mockChannel);
+    expect(globalThis.fetch).toHaveBeenCalled();
   });
 
   test("subscribeToTopic handles network error", async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
+    (globalThis.fetch as jest.Mock).mockRejectedValue(
+      new Error("Network error"),
+    );
 
-    const channel = config.channels[0];
-    const promise = svc.subscribeChannel(channel);
+    const promise = svc.subscribeChannel(mockChannel);
 
     await promise; // Should not throw
   });

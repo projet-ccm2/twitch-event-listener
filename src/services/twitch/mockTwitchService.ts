@@ -6,7 +6,7 @@ import { secureId, secureRandomInt } from "../../utils/random";
 
 export class TwitchService {
   private readonly ingestService: IngestService;
-  private intervalId: NodeJS.Timeout | null = null;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
   private isRunning: boolean = false;
 
   constructor() {
