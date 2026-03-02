@@ -68,7 +68,16 @@ export class EventSubService {
     }
 
     if (messageType === "webhook_callback_verification") {
-      const challenge = JSON.parse(bodyString).challenge;
+      const parsedBody = JSON.parse(bodyString);
+      const challenge = parsedBody.challenge;
+      const subscriptionType = parsedBody.subscription?.type || "unknown";
+
+      logger.info(
+        `✅ Twitch successfully verified webhook challenge for ${subscriptionType}`,
+        {
+          service: "twitch-eventsub",
+        },
+      );
       res.status(200).send(challenge);
       return;
     }
