@@ -154,4 +154,32 @@ describe("EventSubService webhook handling", () => {
     await svc.handleWebhook(req, res);
     expect(res.status).toHaveBeenCalledWith(403);
   });
+
+  test("unknown message type returns 200 fallback", async () => {
+    const bodyStr = JSON.stringify({});
+    const messageId = "mid4";
+    const timestamp = "222";
+    const sig =
+      "sha256=" +
+      crypto
+        .createHmac("sha256", envConfig.twitch.webhookSecret)
+        .update(messageId + timestamp + bodyStr)
+        .digest("hex");
+    const req: any = {
+      header: (name: string) =>
+        (
+          ({
+            "Twitch-Eventsub-Message-Id": messageId,
+            "Twitch-Eventsub-Message-Timestamp": timestamp,
+            "Twitch-Eventsub-Message-Signature": sig,
+            "Twitch-Eventsub-Message-Type": "some_unknown_type",
+          }) as any
+        )[name],
+      rawBody: Buffer.from(bodyStr, "utf8"),
+    };
+    const res = mockRes();
+    await svc.handleWebhook(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalled();
+  });
 });

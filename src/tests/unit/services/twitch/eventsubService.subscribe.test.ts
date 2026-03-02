@@ -1,8 +1,19 @@
 /* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 
-// Mock global fetch
-global.fetch = jest.fn();
+jest.mock("../../../../config/environment", () => ({
+  config: {
+    twitch: {
+      clientId: "test_client_id",
+      clientSecret: "test_secret",
+      publicCallback: "https://callback.com",
+      webhookSecret: "secret",
+    },
+  },
+}));
+
+// Mock globalThis fetch
+globalThis.fetch = jest.fn();
 
 describe("EventSubService subscription", () => {
   let svc: EventSubService;
@@ -17,10 +28,15 @@ describe("EventSubService subscription", () => {
   });
 
   const mockRequest = (statusCode: number, responseBody: string = "") => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      status: statusCode,
-      text: jest.fn().mockResolvedValue(responseBody),
-    });
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
+      })
+      .mockResolvedValueOnce({
+        status: statusCode,
+        text: jest.fn().mockResolvedValue(responseBody),
+      });
   };
 
   const mockChannel = {
@@ -51,13 +67,103 @@ describe("EventSubService subscription", () => {
   });
 
   test("subscribeToTopic handles network error", async () => {
-    (globalThis.fetch as jest.Mock).mockRejectedValue(
-      new Error("Network error"),
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
+      })
+      .mockRejectedValueOnce(new Error("Network error"));
+
+    await expect(svc.subscribeChannel(mockChannel)).resolves.not.toThrow();
+  });
+
+  test("subscribeToTopic skips already cached topics", async () => {
+    // Force the first request to succeed, caching it
+    mockRequest(202);
+    await svc.subscribeChannel(mockChannel);
+
+    // Reset mock
+    jest.clearAllMocks();
+
+    // Second call should NOT try to fetch because the cacheKey is in the Set
+    await svc.subscribeChannel(mockChannel);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  test("subscribeChannel skips if token generation fails", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      text: jest.fn().mockResolvedValue("Unauthorized"),
+    });
+
+    await svc.subscribeChannel(mockChannel);
+
+    // Only the token request should happen, not the subscription request
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("subscribeChannel fails gracefully if token fetch throws", async () => {
+    (globalThis.fetch as jest.Mock).mockRejectedValueOnce(
+      new Error("Token Fetch Boom"),
     );
 
-    const promise = svc.subscribeChannel(mockChannel);
+    await svc.subscribeChannel(mockChannel);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+  });
 
-    await promise; // Should not throw
+  test("subscribeToTopic handles different topic types (channel.subscribe)", async () => {
+    mockRequest(202);
+    await svc.subscribeChannel({
+      ...mockChannel,
+      eventSubTopics: ["channel.subscribe"],
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("subscribeToTopic handles different topic types (other strings)", async () => {
+    mockRequest(202);
+    await svc.subscribeChannel({
+      ...mockChannel,
+      eventSubTopics: ["stream.online"],
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("subscribeToTopic handles object topic configs", async () => {
+    mockRequest(202);
+    await svc.subscribeChannel({
+      ...mockChannel,
+      eventSubTopics: [{ name: "channel.follow", version: "2" }] as any,
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("subscribeAll triggers on true listenEventSub", async () => {
+    mockRequest(202);
+    const mockDbConfig = require("../../../../config/config").config;
+    mockDbConfig.channels = [
+      mockChannel,
+      { ...mockChannel, listenEventSub: false },
+    ];
+
+    await svc.subscribeAll();
+    // Should call fetch twice (once for token, once for the single channel with true)
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("subscribeChannel bails if clientId or clientSecret is missing", async () => {
+    const mockEnv = require("../../../../config/environment").config;
+    const originalClientId = mockEnv.twitch.clientId;
+    mockEnv.twitch.clientId = ""; // Remove the ID
+
+    await svc.subscribeChannel(mockChannel);
+
+    // No fetch should happen because it fails the check before `fetch`
+    expect(globalThis.fetch).toHaveBeenCalledTimes(0);
+
+    // Restore it
+    mockEnv.twitch.clientId = originalClientId;
   });
 });
 
