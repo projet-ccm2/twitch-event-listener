@@ -5,7 +5,8 @@ import { ChannelConfig } from "../models/channel";
 const env = process.env.NODE_ENV || "local";
 
 const loadChannels = (): ChannelConfig[] => {
-  const filePath = path.join(__dirname, env, "channels.json");
+  const configDir = env === "local" ? "local" : "production";
+  const filePath = path.join(__dirname, configDir, "channels.json");
   try {
     const content = fs.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(content) as ChannelConfig[];
