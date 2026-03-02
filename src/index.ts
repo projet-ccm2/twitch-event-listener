@@ -1,7 +1,7 @@
 import "./utils/loadEnv";
 import express from "express";
 import { config as envConfig } from "./config/environment";
-import { config } from "./config/config";
+
 import metricsRouter from "./routes/metricsRoutes";
 import { TwitchService } from "./services/twitch/mockTwitchService";
 import { EventSubService } from "./services/twitch/eventsubService";
@@ -27,7 +27,7 @@ function isValidOrigin(origin: string): boolean {
 }
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin as string | undefined;
+  const origin = req.headers.origin;
   const allowedOrigins = envConfig.cors.allowedOrigins;
   if (allowedOrigins.includes("*")) {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -89,7 +89,7 @@ if (useMock) {
     ircService.connect();
   }
 
-  if (envConfig.nodeEnv === "production") {
+  if (envConfig.nodeEnv !== "local" && envConfig.nodeEnv !== "test") {
     const schedulerService = new SchedulerService(eventSubService, ircService);
     void schedulerService.start();
   }
