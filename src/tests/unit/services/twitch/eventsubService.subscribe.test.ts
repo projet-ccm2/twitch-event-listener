@@ -104,7 +104,9 @@ describe("EventSubService subscription", () => {
   });
 
   test("subscribeChannel fails gracefully if token fetch throws", async () => {
-    (globalThis.fetch as jest.Mock).mockRejectedValueOnce(new Error("Token Fetch Boom"));
+    (globalThis.fetch as jest.Mock).mockRejectedValueOnce(
+      new Error("Token Fetch Boom"),
+    );
 
     await svc.subscribeChannel(mockChannel);
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
@@ -112,13 +114,19 @@ describe("EventSubService subscription", () => {
 
   test("subscribeToTopic handles different topic types (channel.subscribe)", async () => {
     mockRequest(202);
-    await svc.subscribeChannel({ ...mockChannel, eventSubTopics: ["channel.subscribe"] });
+    await svc.subscribeChannel({
+      ...mockChannel,
+      eventSubTopics: ["channel.subscribe"],
+    });
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 
   test("subscribeToTopic handles different topic types (other strings)", async () => {
     mockRequest(202);
-    await svc.subscribeChannel({ ...mockChannel, eventSubTopics: ["stream.online"] });
+    await svc.subscribeChannel({
+      ...mockChannel,
+      eventSubTopics: ["stream.online"],
+    });
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
 
@@ -126,7 +134,7 @@ describe("EventSubService subscription", () => {
     mockRequest(202);
     await svc.subscribeChannel({
       ...mockChannel,
-      eventSubTopics: [{ name: "channel.follow", version: "2" }] as any
+      eventSubTopics: [{ name: "channel.follow", version: "2" }] as any,
     });
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
   });
@@ -134,7 +142,10 @@ describe("EventSubService subscription", () => {
   test("subscribeAll triggers on true listenEventSub", async () => {
     mockRequest(202);
     const mockDbConfig = require("../../../../config/config").config;
-    mockDbConfig.channels = [mockChannel, { ...mockChannel, listenEventSub: false }];
+    mockDbConfig.channels = [
+      mockChannel,
+      { ...mockChannel, listenEventSub: false },
+    ];
 
     await svc.subscribeAll();
     // Should call fetch twice (once for token, once for the single channel with true)

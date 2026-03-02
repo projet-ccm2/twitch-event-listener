@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 
 // Mock IngestService so EventSubService will use it
 // Mock IngestService so EventSubService will use it
-const mockHandleEvent = jest.fn(async () => { });
+const mockHandleEvent = jest.fn(async () => {});
 jest.mock("../services/ingestService", () => ({
   IngestService: class {
     handleEvent = mockHandleEvent;
