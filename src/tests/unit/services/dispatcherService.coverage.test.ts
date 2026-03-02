@@ -28,8 +28,8 @@ describe("DispatcherService Coverage", () => {
     jest.useRealTimers();
   });
 
-  test("logs to console in development mode (single event)", async () => {
-    process.env.NODE_ENV = "development";
+  test("logs to console in local mode (single event)", async () => {
+    process.env.NODE_ENV = "local";
     // Reload service to pick up env change
     const DS = await loadDispatcher();
     const localSvc = new DS("http://test-url");
@@ -50,8 +50,8 @@ describe("DispatcherService Coverage", () => {
     consoleSpy.mockRestore();
   });
 
-  test("logs to console in development mode (batch)", async () => {
-    process.env.NODE_ENV = "development";
+  test("logs to console in local mode (batch)", async () => {
+    process.env.NODE_ENV = "local";
     const DS = await loadDispatcher();
     const localSvc = new DS("http://test-url");
     const consoleSpy = jest.spyOn(console, "log").mockImplementation();

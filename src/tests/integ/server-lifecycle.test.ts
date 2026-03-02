@@ -93,7 +93,7 @@ describe("Server Lifecycle", () => {
     };
 
     const port = 3000;
-    const environment = "development";
+    const environment = "local";
 
     mockApp.listen(port, () => {
       mockLogger.info(`Server started on port ${port}`, {

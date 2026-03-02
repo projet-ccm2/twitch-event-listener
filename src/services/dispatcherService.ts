@@ -14,7 +14,7 @@ export class DispatcherService {
     event: TwitchEvent | TwitchEvent[],
     attempt: number = 1,
   ): Promise<void> {
-    if (envConfig.nodeEnv === "development") {
+    if (envConfig.nodeEnv === "local") {
       this.logDevMode(event);
       return;
     }

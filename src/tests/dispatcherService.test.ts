@@ -22,8 +22,8 @@ describe("DispatcherService", () => {
     jest.resetModules();
   });
 
-  test("dev mode: prints to console and does not call fetch", async () => {
-    process.env.NODE_ENV = "development";
+  test("local mode: prints to console and does not call fetch", async () => {
+    process.env.NODE_ENV = "local";
     const { DispatcherService } = await loadDispatcher();
 
     const ds = new DispatcherService("http://example.com");

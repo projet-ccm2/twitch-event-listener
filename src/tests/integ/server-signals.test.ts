@@ -30,7 +30,7 @@ jest.mock("express", () => jest.fn(() => mockApp));
 
 jest.mock("../../config/environment", () => ({
   config: {
-    nodeEnv: "development",
+    nodeEnv: "local",
     port: 3000,
   },
 }));
@@ -92,7 +92,7 @@ describe("Server Signal Handlers", () => {
 
   it("should handle server startup logging", () => {
     const port = 3000;
-    const environment = "development";
+    const environment = "local";
 
     const server = mockApp.listen(port, () => {
       mockLogger.info(`Server started on port ${port}`, {

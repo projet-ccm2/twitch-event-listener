@@ -9,8 +9,8 @@ describe("Logger Branch Coverage", () => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  it("should use debug level in development environment", () => {
-    process.env.NODE_ENV = "development";
+  it("should use debug level in local environment", () => {
+    process.env.NODE_ENV = "local";
 
     const { logger } = require("../../../utils/logger");
 
@@ -18,7 +18,7 @@ describe("Logger Branch Coverage", () => {
     expect(logger.level).toBe("debug");
   });
 
-  it("should use info level in non-development environment", () => {
+  it("should use info level in non-local environment", () => {
     process.env.NODE_ENV = "production";
 
     const { logger } = require("../../../utils/logger");

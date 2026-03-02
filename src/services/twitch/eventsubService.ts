@@ -275,6 +275,7 @@ export class EventSubService {
           resolve();
         });
         req.write(JSON.stringify(payload));
+        req.end();
       });
     } catch (err) {
       logger.error(`Exception subscribing to ${topicName}`, { error: err });
