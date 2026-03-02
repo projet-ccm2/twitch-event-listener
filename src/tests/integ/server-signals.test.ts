@@ -1,5 +1,3 @@
-import { Server } from "http";
-
 const mockLogger = {
   info: jest.fn(),
   error: jest.fn(),
@@ -94,7 +92,7 @@ describe("Server Signal Handlers", () => {
     const port = 3000;
     const environment = "local";
 
-    const server = mockApp.listen(port, () => {
+    mockApp.listen(port, () => {
       mockLogger.info(`Server started on port ${port}`, {
         environment: environment,
         port: port,

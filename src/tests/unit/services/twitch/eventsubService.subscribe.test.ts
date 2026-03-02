@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 
 // Mock global fetch
