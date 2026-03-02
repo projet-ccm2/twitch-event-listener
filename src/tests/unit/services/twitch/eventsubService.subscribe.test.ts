@@ -50,7 +50,9 @@ describe("EventSubService subscription", () => {
   });
 
   test("subscribeToTopic handles network error", async () => {
-    (globalThis.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
+    (globalThis.fetch as jest.Mock).mockRejectedValue(
+      new Error("Network error"),
+    );
 
     const promise = svc.subscribeChannel(mockChannel);
 
