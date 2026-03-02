@@ -1,8 +1,19 @@
 /* eslint-disable camelcase */
 import { EventSubService } from "../../../../services/twitch/eventsubService";
 
-// Mock global fetch
-global.fetch = jest.fn();
+jest.mock("../../../../config/environment", () => ({
+  config: {
+    twitch: {
+      clientId: "test_client_id",
+      clientSecret: "test_secret",
+      publicCallback: "https://callback.com",
+      webhookSecret: "secret",
+    },
+  },
+}));
+
+// Mock globalThis fetch
+globalThis.fetch = jest.fn();
 
 describe("EventSubService subscription", () => {
   let svc: EventSubService;
@@ -17,7 +28,7 @@ describe("EventSubService subscription", () => {
   });
 
   const mockRequest = (statusCode: number, responseBody: string = "") => {
-    (global.fetch as jest.Mock)
+    (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
