@@ -5,11 +5,13 @@ import { ChannelConfig } from "../../models/channel";
 import { logger } from "../../utils/logger";
 import { IngestService } from "../ingestService";
 import crypto from "node:crypto";
-import https from "node:https";
+
 import { Request, Response } from "express";
 import { TwitchEvent } from "../../models/event";
 export class EventSubService {
   private readonly ingestService: IngestService;
+  private appAccessToken: string | null = null;
+  private readonly subscribedTopics: Set<string> = new Set();
 
   constructor() {
     this.ingestService = new IngestService();
@@ -25,16 +27,74 @@ export class EventSubService {
   }
 
   public async subscribeChannel(channel: ChannelConfig) {
+    const token = await this.getAppAccessToken();
+    if (!token) {
+      logger.error(
+        `Skipping subscriptions for channel ${channel.login} due to missing App Access Token`,
+        { service: "twitch-eventsub" },
+      );
+      return;
+    }
+
     const topics = channel.eventSubTopics || [];
     for (const topicConfig of topics) {
       await this.subscribeToTopic(
         channel,
         topicConfig,
         envConfig.twitch.clientId,
-        envConfig.twitch.appAccessToken,
+        token,
         envConfig.twitch.publicCallback,
         envConfig.twitch.webhookSecret,
       );
+    }
+  }
+
+  private async getAppAccessToken(): Promise<string | null> {
+    if (this.appAccessToken) return this.appAccessToken;
+
+    try {
+      const { clientId, clientSecret } = envConfig.twitch;
+      if (!clientId || !clientSecret) {
+        logger.error(
+          "Cannot generate Twitch App Access Token: Missing Client ID or Client Secret",
+          { service: "twitch-eventsub" },
+        );
+        return null;
+      }
+
+      const params = new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "client_credentials",
+      });
+
+      const response = await fetch("https://id.twitch.tv/oauth2/token", {
+        method: "POST",
+        body: params,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        logger.error(
+          `Failed to generate App Access Token: ${response.status} ${errorText}`,
+          {
+            service: "twitch-eventsub",
+          },
+        );
+        return null;
+      }
+
+      const data = await response.json();
+      this.appAccessToken = data.access_token;
+      logger.info("Successfully generated Twitch App Access Token", {
+        service: "twitch-eventsub",
+      });
+      return this.appAccessToken;
+    } catch (err) {
+      logger.error("Exception generating Twitch App Access Token", {
+        error: err,
+      });
+      return null;
     }
   }
 
@@ -105,10 +165,14 @@ export class EventSubService {
     const { status, type, condition } = subscription;
     const channelId = condition.broadcaster_user_id;
 
+    const cacheKey = `${channelId}:${type}`;
+
     logger.warn(
       `Subscription revoked: ${type} for channel ${channelId}. Status: ${status}`,
       { service: "twitch-eventsub", payload },
     );
+
+    this.subscribedTopics.delete(cacheKey);
 
     if (status === "notification_failures_exceeded") {
       logger.info(`Attempting to re-subscribe to ${type} for ${channelId}`, {
@@ -124,6 +188,9 @@ export class EventSubService {
         return;
       }
 
+      const token = await this.getAppAccessToken();
+      if (!token) return;
+
       await this.subscribeToTopic(
         channel,
         {
@@ -132,7 +199,7 @@ export class EventSubService {
           condition: condition,
         },
         envConfig.twitch.clientId,
-        envConfig.twitch.appAccessToken,
+        token,
         envConfig.twitch.publicCallback,
         envConfig.twitch.webhookSecret,
       );
@@ -240,6 +307,12 @@ export class EventSubService {
       },
     };
 
+    const cacheKey = `${channel.twitchUserId}:${topicName}`;
+    if (this.subscribedTopics.has(cacheKey)) {
+      // Silently return to prevent log spam and API rate-limiting
+      return;
+    }
+
     try {
       const response = await fetch(
         "https://api.twitch.tv/helix/eventsub/subscriptions",
@@ -255,10 +328,12 @@ export class EventSubService {
       );
 
       if (response.status >= 200 && response.status < 300) {
+        this.subscribedTopics.add(cacheKey);
         logger.info(`Subscribed to ${topicName} for ${channel.login}`, {
           service: "twitch-eventsub",
         });
       } else if (response.status === 409) {
+        this.subscribedTopics.add(cacheKey);
         logger.info(
           `Subscription already exists for ${topicName} on ${channel.login}`,
           { service: "twitch-eventsub" },

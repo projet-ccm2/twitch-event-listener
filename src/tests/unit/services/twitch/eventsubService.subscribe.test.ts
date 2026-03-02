@@ -17,10 +17,15 @@ describe("EventSubService subscription", () => {
   });
 
   const mockRequest = (statusCode: number, responseBody: string = "") => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      status: statusCode,
-      text: jest.fn().mockResolvedValue(responseBody),
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
+      })
+      .mockResolvedValueOnce({
+        status: statusCode,
+        text: jest.fn().mockResolvedValue(responseBody),
+      });
   };
 
   const mockChannel = {

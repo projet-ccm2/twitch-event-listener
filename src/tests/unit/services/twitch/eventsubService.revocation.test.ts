@@ -19,7 +19,7 @@ jest.mock("../../../../config/environment", () => ({
   config: {
     twitch: {
       clientId: "test_client_id",
-      appAccessToken: "test_token",
+      clientSecret: "test_secret",
       publicCallback: "https://callback.com",
       webhookSecret: "secret",
     },
@@ -40,6 +40,11 @@ describe("EventSubService revocation handling", () => {
 
     // Mock private methods
     (svc as any).subscribeToTopic = jest.fn().mockResolvedValue(undefined);
+
+    globalThis.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
+    });
   });
 
   afterEach(() => {
@@ -67,7 +72,7 @@ describe("EventSubService revocation handling", () => {
       expect.objectContaining({ twitchUserId: "123" }),
       expect.objectContaining({ name: "channel.follow", version: "2" }),
       "test_client_id",
-      "test_token",
+      "mock_token",
       "https://callback.com",
       "secret",
     );

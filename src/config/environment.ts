@@ -7,7 +7,10 @@ export const config = {
   useMock: process.env.USE_MOCK === "true",
   twitch: {
     clientId: process.env.TWITCH_CLIENT_ID || "",
-    appAccessToken: process.env.TWITCH_APP_ACCESS_TOKEN || "",
+    clientSecret:
+      process.env.TWITCH_CLIENT_SECRET ||
+      process.env.TWITCH_APP_ACCESS_TOKEN ||
+      "",
     webhookSecret: process.env.TWITCH_WEBHOOK_SECRET || "",
     publicCallback: process.env.PUBLIC_EVENTSUB_CALLBACK || "",
     ircNick: process.env.TWITCH_IRC_NICK || "justinfan12345",
