@@ -19,7 +19,7 @@ export const config = {
       .map((o) => o.trim()),
   },
   dispatcherApiUrl:
-    process.env.DISPATCHER_API_URL || "http://localhost:4000/events",
+    process.env.DISPATCHER_URL || "http://localhost:4000/events",
   chatBufferTime: Number.parseInt(process.env.CHAT_BUFFER_TIME || "5000", 10),
   batchIntervalMs: Number.parseInt(
     process.env.BATCH_INTERVAL_MS || "300000",
