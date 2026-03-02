@@ -231,52 +231,36 @@ export class EventSubService {
       },
     };
 
-    const options = {
-      hostname: "api.twitch.tv",
-      path: "/helix/eventsub/subscriptions",
-      method: "POST",
-      headers: {
-        "Client-ID": clientId,
-        Authorization: `Bearer ${appAccessToken}`,
-        "Content-Type": "application/json",
-      },
-    };
-
     try {
-      await new Promise<void>((resolve, reject) => {
-        const req = https.request(options, (res) => {
-          let data = "";
-          res.on("data", (chunk) => (data += chunk));
-          res.on("end", () => {
-            if (
-              res.statusCode &&
-              res.statusCode >= 200 &&
-              res.statusCode < 300
-            ) {
-              logger.info(`Subscribed to ${topicName} for ${channel.login}`, {
-                service: "twitch-eventsub",
-              });
-            } else if (res.statusCode === 409) {
-              logger.info(
-                `Subscription already exists for ${topicName} on ${channel.login}`,
-                { service: "twitch-eventsub" },
-              );
-            } else {
-              logger.warn(
-                `Failed to subscribe to ${topicName}: ${res.statusCode} ${data}`,
-                { service: "twitch-eventsub" },
-              );
-            }
-            resolve();
-          });
+      const response = await fetch(
+        "https://api.twitch.tv/helix/eventsub/subscriptions",
+        {
+          method: "POST",
+          headers: {
+            "Client-ID": clientId,
+            Authorization: `Bearer ${appAccessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (response.status >= 200 && response.status < 300) {
+        logger.info(`Subscribed to ${topicName} for ${channel.login}`, {
+          service: "twitch-eventsub",
         });
-        req.on("error", (e) => {
-          logger.error(`Request error for ${topicName}`, { error: e });
-          resolve();
-        });
-        req.write(JSON.stringify(payload));
-        req.end();
-      });
+      } else if (response.status === 409) {
+        logger.info(
+          `Subscription already exists for ${topicName} on ${channel.login}`,
+          { service: "twitch-eventsub" },
+        );
+      } else {
+        const data = await response.text();
+        logger.warn(
+          `Failed to subscribe to ${topicName}: ${response.status} ${data}`,
+          { service: "twitch-eventsub" },
+        );
+      }
     } catch (err) {
       logger.error(`Exception subscribing to ${topicName}`, { error: err });
     }
