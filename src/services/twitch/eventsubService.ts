@@ -12,12 +12,14 @@ export class EventSubService {
   private readonly ingestService: IngestService;
   private appAccessToken: string | null = null;
   private readonly subscribedTopics: Set<string> = new Set();
+  private existingSubscriptionsLoaded = false;
 
   constructor() {
     this.ingestService = new IngestService();
   }
 
   public async subscribeAll() {
+    await this.loadExistingSubscriptions();
     const channels = config.channels;
     for (const channel of channels) {
       if (channel.listenEventSub) {
@@ -35,6 +37,8 @@ export class EventSubService {
       );
       return;
     }
+
+    await this.loadExistingSubscriptions(token);
 
     const topics = channel.eventSubTopics || [];
     for (const topicConfig of topics) {
@@ -95,6 +99,77 @@ export class EventSubService {
         error: err,
       });
       return null;
+    }
+  }
+
+  private async loadExistingSubscriptions(
+    tokenOverride?: string,
+  ): Promise<void> {
+    if (this.existingSubscriptionsLoaded) {
+      return;
+    }
+
+    const token = tokenOverride || (await this.getAppAccessToken());
+    if (!token) {
+      return;
+    }
+
+    let cursor: string | undefined;
+
+    try {
+      do {
+        const url = new URL(
+          "https://api.twitch.tv/helix/eventsub/subscriptions",
+        );
+        if (cursor) {
+          url.searchParams.set("after", cursor);
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            "Client-ID": envConfig.twitch.clientId,
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          logger.warn(
+            `Failed to load existing EventSub subscriptions: ${response.status} ${errorText}`,
+            { service: "twitch-eventsub" },
+          );
+          return;
+        }
+
+        const data = await response.json();
+        const subscriptions = Array.isArray(data.data) ? data.data : [];
+
+        for (const subscription of subscriptions) {
+          const cacheKey = this.getCacheKeyFromCondition(
+            subscription.type,
+            subscription.condition,
+          );
+          if (cacheKey) {
+            this.subscribedTopics.add(cacheKey);
+          }
+        }
+
+        cursor =
+          typeof data.pagination?.cursor === "string"
+            ? data.pagination.cursor
+            : undefined;
+      } while (cursor);
+
+      this.existingSubscriptionsLoaded = true;
+      logger.info("Loaded existing Twitch EventSub subscriptions", {
+        service: "twitch-eventsub",
+        count: this.subscribedTopics.size,
+      });
+    } catch (err) {
+      logger.error("Exception while loading existing EventSub subscriptions", {
+        service: "twitch-eventsub",
+        error: err,
+      });
     }
   }
 
@@ -214,6 +289,22 @@ export class EventSubService {
     }
   }
 
+  private getCacheKeyFromCondition(
+    topicName: string,
+    condition?: Record<string, string>,
+  ): string | null {
+    const channelId =
+      condition?.broadcaster_user_id ||
+      condition?.to_broadcaster_user_id ||
+      condition?.from_broadcaster_user_id;
+
+    if (!channelId) {
+      return null;
+    }
+
+    return `${channelId}:${topicName}`;
+  }
+
   private normalizeEvent(payload: any): TwitchEvent {
     const subscription = payload.subscription || {};
     const event = payload.event || {};
@@ -307,7 +398,9 @@ export class EventSubService {
       },
     };
 
-    const cacheKey = `${channel.twitchUserId}:${topicName}`;
+    const cacheKey =
+      this.getCacheKeyFromCondition(topicName, condition) ||
+      `${channel.twitchUserId}:${topicName}`;
     if (this.subscribedTopics.has(cacheKey)) {
       // Silently return to prevent log spam and API rate-limiting
       return;

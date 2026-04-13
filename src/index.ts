@@ -82,7 +82,6 @@ if (useMock) {
     service: "twitch-notification-handler",
   });
   eventSubService = new EventSubService();
-
   const ircService = new IrcService();
 
   if (envConfig.nodeEnv !== "test") {

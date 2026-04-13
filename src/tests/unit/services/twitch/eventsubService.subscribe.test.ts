@@ -34,6 +34,10 @@ describe("EventSubService subscription", () => {
         json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
       })
       .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ data: [], pagination: {} }),
+      })
+      .mockResolvedValueOnce({
         status: statusCode,
         text: jest.fn().mockResolvedValue(responseBody),
       });
@@ -85,9 +89,39 @@ describe("EventSubService subscription", () => {
     // Reset mock
     jest.clearAllMocks();
 
-    // Second call should NOT try to fetch because the cacheKey is in the Set
+    // Second call should be fully skipped thanks to the in-memory cache
     await svc.subscribeChannel(mockChannel);
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  test("subscribeChannel skips Twitch POST when subscription already exists remotely", async () => {
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ access_token: "mock_token" }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          data: [
+            {
+              type: "channel.follow",
+              condition: {
+                broadcaster_user_id: "12345",
+                moderator_user_id: "12345",
+              },
+            },
+          ],
+          pagination: {},
+        }),
+      });
+
+    await svc.subscribeChannel(mockChannel);
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect((globalThis.fetch as jest.Mock).mock.calls[1][0].toString()).toBe(
+      "https://api.twitch.tv/helix/eventsub/subscriptions",
+    );
   });
 
   test("subscribeChannel skips if token generation fails", async () => {
@@ -118,7 +152,7 @@ describe("EventSubService subscription", () => {
       ...mockChannel,
       eventSubTopics: ["channel.subscribe"],
     });
-    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
   test("subscribeToTopic handles different topic types (other strings)", async () => {
@@ -127,7 +161,7 @@ describe("EventSubService subscription", () => {
       ...mockChannel,
       eventSubTopics: ["stream.online"],
     });
-    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
   test("subscribeToTopic handles object topic configs", async () => {
@@ -136,7 +170,7 @@ describe("EventSubService subscription", () => {
       ...mockChannel,
       eventSubTopics: [{ name: "channel.follow", version: "2" }] as any,
     });
-    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
   test("subscribeAll triggers on true listenEventSub", async () => {
@@ -148,8 +182,8 @@ describe("EventSubService subscription", () => {
     ];
 
     await svc.subscribeAll();
-    // Should call fetch twice (once for token, once for the single channel with true)
-    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    // Token fetch + load existing + subscribe POST
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
   test("subscribeChannel bails if clientId or clientSecret is missing", async () => {
