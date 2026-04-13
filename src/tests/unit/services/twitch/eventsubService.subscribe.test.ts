@@ -164,6 +164,19 @@ describe("EventSubService subscription", () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
+  test("subscribeToTopic uses version 2 for hype train topics", async () => {
+    mockRequest(202);
+    await svc.subscribeChannel({
+      ...mockChannel,
+      eventSubTopics: ["channel.hype_train.begin"],
+    });
+
+    const subscriptionPayload = JSON.parse(
+      (globalThis.fetch as jest.Mock).mock.calls[2][1].body,
+    );
+    expect(subscriptionPayload.version).toBe("2");
+  });
+
   test("subscribeToTopic handles object topic configs", async () => {
     mockRequest(202);
     await svc.subscribeChannel({
@@ -295,6 +308,17 @@ describe("EventSubService subscription", () => {
     await (svc as any).loadExistingSubscriptions("mock_token");
 
     expect((svc as any).existingSubscriptionsLoaded).toBe(false);
+  });
+
+  test("subscribeToTopic suppresses repeated retries after a failed subscription", async () => {
+    mockRequest(400, "Bad Request");
+    await svc.subscribeChannel(mockChannel);
+
+    jest.clearAllMocks();
+
+    await svc.subscribeChannel(mockChannel);
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });
 

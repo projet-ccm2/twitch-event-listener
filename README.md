@@ -1,6 +1,6 @@
 # Twitch Listener Microservice
 
-## 📖 Vue d'ensemble
+## Vue d'ensemble
 
 Ce projet est un **microservice d'ingestion haute performance** conçu pour écouter, normaliser et dispatcher les événements Twitch en temps réel. Il agit comme une passerelle unique entre Twitch et votre écosystème applicatif.
 
@@ -8,7 +8,7 @@ Il gère la complexité des protocoles Twitch (Webhooks EventSub, WebSocket IRC)
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 Le service est construit autour de plusieurs composants clés :
 
@@ -31,15 +31,15 @@ graph TD
 
 ### Composants Principaux
 
-1.  **EventSub Service** : Gère les abonnements Webhooks (Follows, Subs, Stream Online...). Vérifie les signatures cryptographiques HMAC-SHA256 pour garantir la sécurité.
-2.  **IRC Service** : Se connecte au chat Twitch via WebSocket. Gère le buffering des messages pour éviter de saturer le dispatcher.
-3.  **Ingest Service** : Point central de normalisation. Transforme n'importe quel événement (chat ou webhook) en un objet standard.
-4.  **Dispatcher Service** : Envoie les événements normalisés vers votre API. Gère les retries avec "Exponential Backoff" en cas de panne de votre API.
-5.  **Scheduler Service** (Prod uniquement) : Synchronise périodiquement la liste des chaînes à écouter depuis votre service de base de données (DB Service).
+1. **EventSub Service** : Gère les abonnements Webhooks (Follows, Subs, Stream Online...). Vérifie les signatures cryptographiques HMAC-SHA256 pour garantir la sécurité.
+2. **IRC Service** : Se connecte au chat Twitch via WebSocket. Gère le buffering des messages pour éviter de saturer le dispatcher.
+3. **Ingest Service** : Point central de normalisation. Transforme n'importe quel événement (chat ou webhook) en un objet standard.
+4. **Dispatcher Service** : Envoie les événements normalisés vers votre API. Gère les retries avec "Exponential Backoff" en cas de panne de votre API.
+5. **Scheduler Service** (Prod uniquement) : Synchronise périodiquement la liste des chaînes à écouter depuis votre service de base de données (DB Service).
 
 ---
 
-## 🚀 Fonctionnalités Clés
+## Fonctionnalités Clés
 
 - **Multi-Protocole** : Support simultané de EventSub (Webhooks) et IRC (Chat).
 - **Normalisation Unique** : Format de sortie unique quel que soit l'événement source.
@@ -52,7 +52,7 @@ graph TD
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Variables d'Environnement (`.env`)
 
@@ -66,7 +66,7 @@ graph TD
 | `SYNC_INTERVAL_MS`         | Fréquence de synchro avec DB Service (ms)       | `60000` (1min)                    |
 | `CHAT_BUFFER_TIME`         | Temps de buffer pour les messages IRC (ms)      | `5000`                            |
 | `TWITCH_CLIENT_ID`         | Client ID Twitch (Requis si !Mock)              | -                                 |
-| `TWITCH_APP_ACCESS_TOKEN`  | App Token Twitch (Requis si !Mock)              | -                                 |
+| `TWITCH_CLIENT_SECRET`     | Client Secret Twitch pour EventSub              | -                                 |
 | `TWITCH_WEBHOOK_SECRET`    | Secret pour signer les webhooks                 | -                                 |
 | `PUBLIC_EVENTSUB_CALLBACK` | URL publique de ce service (ex: ngrok)          | -                                 |
 
@@ -99,7 +99,7 @@ SYNC_INTERVAL_MS=60000
 
 # Twitch API
 TWITCH_CLIENT_ID=123456789abcdef
-TWITCH_APP_ACCESS_TOKEN=oauth_token_secret
+TWITCH_CLIENT_SECRET=mon_client_secret_twitch
 TWITCH_WEBHOOK_SECRET=mon_secret_hmac_complexe
 PUBLIC_EVENTSUB_CALLBACK=https://mon-domaine-public.com
 ```
@@ -124,7 +124,7 @@ PUBLIC_EVENTSUB_CALLBACK=https://mon-domaine-public.com
 
 ---
 
-## 🔌 API Reference
+## API Reference
 
 ### 1. Health Check
 
@@ -194,7 +194,7 @@ Ajouter manuellement une chaîne à écouter (utile pour le debug ou l'ajout imm
 
 ---
 
-## 📦 Format de Sortie (Vers Dispatcher)
+## Format de Sortie (Vers Dispatcher)
 
 Votre API (`DISPATCHER_URL`) recevra des requêtes `POST` avec le corps suivant.
 **Note : Le payload est TOUJOURS un tableau JSON (Array).**
@@ -258,7 +258,7 @@ interface TwitchEvent {
 
 ---
 
-## 🛠 Installation et Démarrage
+## Installation et Démarrage
 
 ### Prérequis
 
@@ -300,7 +300,7 @@ Lance la suite de tests unitaires avec Jest.
 
 ---
 
-## 🛡 Sécurité
+## Sécurité
 
 - **Signature Webhook** : Tous les appels sur `/eventsub/callback` sont rejetés si la signature HMAC ne correspond pas à `TWITCH_WEBHOOK_SECRET`.
 - **CORS** : Configurable via `CORS_ALLOWED_ORIGINS` dans `.env`.

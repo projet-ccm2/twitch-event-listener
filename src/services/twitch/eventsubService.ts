@@ -9,9 +9,11 @@ import crypto from "node:crypto";
 import { Request, Response } from "express";
 import { TwitchEvent } from "../../models/event";
 export class EventSubService {
+  private static readonly FAILED_SUBSCRIPTION_RETRY_MS = 30 * 60 * 1000;
   private readonly ingestService: IngestService;
   private appAccessToken: string | null = null;
   private readonly subscribedTopics: Set<string> = new Set();
+  private readonly failedTopics: Map<string, number> = new Map();
   private existingSubscriptionsLoaded = false;
 
   constructor() {
@@ -374,6 +376,9 @@ export class EventSubService {
           broadcaster_user_id: channel.twitchUserId,
           moderator_user_id: channel.twitchUserId,
         };
+      } else if (topicName.startsWith("channel.hype_train.")) {
+        version = "2";
+        condition = { broadcaster_user_id: channel.twitchUserId };
       } else if (topicName === "channel.subscribe") {
         condition = { broadcaster_user_id: channel.twitchUserId };
       } else {
@@ -401,6 +406,11 @@ export class EventSubService {
     const cacheKey =
       this.getCacheKeyFromCondition(topicName, condition) ||
       `${channel.twitchUserId}:${topicName}`;
+    const failedUntil = this.failedTopics.get(cacheKey);
+    if (failedUntil && failedUntil > Date.now()) {
+      return;
+    }
+
     if (this.subscribedTopics.has(cacheKey)) {
       // Silently return to prevent log spam and API rate-limiting
       return;
@@ -422,23 +432,33 @@ export class EventSubService {
 
       if (response.status >= 200 && response.status < 300) {
         this.subscribedTopics.add(cacheKey);
+        this.failedTopics.delete(cacheKey);
         logger.info(`Subscribed to ${topicName} for ${channel.login}`, {
           service: "twitch-eventsub",
         });
       } else if (response.status === 409) {
         this.subscribedTopics.add(cacheKey);
+        this.failedTopics.delete(cacheKey);
         logger.info(
           `Subscription already exists for ${topicName} on ${channel.login}`,
           { service: "twitch-eventsub" },
         );
       } else {
         const data = await response.text();
+        this.failedTopics.set(
+          cacheKey,
+          Date.now() + EventSubService.FAILED_SUBSCRIPTION_RETRY_MS,
+        );
         logger.warn(
           `Failed to subscribe to ${topicName}: ${response.status} ${data}`,
           { service: "twitch-eventsub" },
         );
       }
     } catch (err) {
+      this.failedTopics.set(
+        cacheKey,
+        Date.now() + EventSubService.FAILED_SUBSCRIPTION_RETRY_MS,
+      );
       logger.error(`Exception subscribing to ${topicName}`, { error: err });
     }
   }
