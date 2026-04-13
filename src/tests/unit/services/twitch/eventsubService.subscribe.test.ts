@@ -199,6 +199,103 @@ describe("EventSubService subscription", () => {
     // Restore it
     mockEnv.twitch.clientId = originalClientId;
   });
+
+  test("loadExistingSubscriptions returns immediately when already loaded", async () => {
+    (svc as any).existingSubscriptionsLoaded = true;
+
+    await (svc as any).loadExistingSubscriptions("mock_token");
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  test("loadExistingSubscriptions returns when token cannot be resolved", async () => {
+    jest.spyOn(svc as any, "getAppAccessToken").mockResolvedValue(null);
+
+    await (svc as any).loadExistingSubscriptions();
+
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  test("loadExistingSubscriptions handles non-ok response", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: jest.fn().mockResolvedValue("boom"),
+    });
+
+    await (svc as any).loadExistingSubscriptions("mock_token");
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect((svc as any).existingSubscriptionsLoaded).toBe(false);
+  });
+
+  test("loadExistingSubscriptions paginates and caches alternate condition ids", async () => {
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          data: [
+            {
+              type: "channel.raid",
+              condition: { to_broadcaster_user_id: "raid_target" },
+            },
+            {
+              type: "channel.raid",
+              condition: { from_broadcaster_user_id: "raid_source" },
+            },
+          ],
+          pagination: { cursor: "next-cursor" },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          data: [
+            {
+              type: "stream.online",
+              condition: {},
+            },
+          ],
+          pagination: {},
+        }),
+      });
+
+    await (svc as any).loadExistingSubscriptions("mock_token");
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect((globalThis.fetch as jest.Mock).mock.calls[1][0].toString()).toBe(
+      "https://api.twitch.tv/helix/eventsub/subscriptions?after=next-cursor",
+    );
+    expect((svc as any).subscribedTopics.has("raid_target:channel.raid")).toBe(
+      true,
+    );
+    expect((svc as any).subscribedTopics.has("raid_source:channel.raid")).toBe(
+      true,
+    );
+    expect((svc as any).existingSubscriptionsLoaded).toBe(true);
+  });
+
+  test("loadExistingSubscriptions handles malformed payloads and exceptions", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        data: null,
+        pagination: { cursor: 123 },
+      }),
+    });
+
+    await (svc as any).loadExistingSubscriptions("mock_token");
+
+    expect((svc as any).existingSubscriptionsLoaded).toBe(true);
+
+    jest.clearAllMocks();
+    (svc as any).existingSubscriptionsLoaded = false;
+    (globalThis.fetch as jest.Mock).mockRejectedValueOnce(new Error("network"));
+
+    await (svc as any).loadExistingSubscriptions("mock_token");
+
+    expect((svc as any).existingSubscriptionsLoaded).toBe(false);
+  });
 });
 
 describe("EventSubService normalizeEvent", () => {
@@ -231,5 +328,13 @@ describe("EventSubService normalizeEvent", () => {
     const event = (svc as any).normalizeEvent(payload);
 
     expect(event.channelId).toBe("123");
+  });
+
+  test("getCacheKeyFromCondition returns null without supported ids", () => {
+    expect(
+      (svc as any).getCacheKeyFromCondition("stream.online", {
+        moderator_user_id: "123",
+      }),
+    ).toBeNull();
   });
 });
