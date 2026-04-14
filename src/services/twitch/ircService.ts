@@ -36,6 +36,7 @@ export class IrcService {
       // For authenticated access, password should be 'oauth:<token>' and nick your Twitch username
       const ircPassword = envConfig.twitch.ircPassword;
       const ircNick = envConfig.twitch.ircNick;
+      this.ws?.send("CAP REQ :twitch.tv/tags");
       this.ws?.send(`PASS ${ircPassword}`);
       this.ws?.send(`NICK ${ircNick}`);
       this.updateSubscriptions();
@@ -100,18 +101,25 @@ export class IrcService {
       }
 
       if (line.includes("PRIVMSG")) {
-        // Example: :user!user@user.tmi.twitch.tv PRIVMSG #channel :message content here
-        const match = /^:([^!]+)![^ ]+ PRIVMSG #([^ ]+) :(.*)$/.exec(line);
+        const { tags, message } = this.parseTaggedMessage(line);
+        // Example without tags: :user!user@user.tmi.twitch.tv PRIVMSG #channel :message content here
+        // Example with tags: @room-id=1;user-id=2 :user!user@user.tmi.twitch.tv PRIVMSG #channel :hello
+        const match = /^:([^!]+)![^ ]+ PRIVMSG #([^ ]+) :(.*)$/.exec(message);
         if (match) {
           const userLogin = match[1];
           const channel = match[2];
           const messageContent = match[3];
+          const channelConfig = config.channels.find(
+            (configuredChannel) => configuredChannel.login === channel,
+          );
 
           const event = {
             id: secureId(),
             source: "irc",
             type: "message",
+            channelId: tags["room-id"] || channelConfig?.twitchUserId,
             channelLogin: channel,
+            userId: tags["user-id"] || undefined,
             userLogin: userLogin,
             timestamp: new Date().toISOString(),
             version: "1.0",
@@ -125,6 +133,42 @@ export class IrcService {
         }
       }
     }
+  }
+
+  private parseTaggedMessage(line: string): {
+    tags: Record<string, string>;
+    message: string;
+  } {
+    if (!line.startsWith("@")) {
+      return { tags: {}, message: line };
+    }
+
+    const firstSpaceIndex = line.indexOf(" ");
+    if (firstSpaceIndex === -1) {
+      return { tags: {}, message: line };
+    }
+
+    const rawTags = line.slice(1, firstSpaceIndex);
+    const tags = rawTags
+      .split(";")
+      .filter(Boolean)
+      .reduce<Record<string, string>>((acc, rawTag) => {
+        const separatorIndex = rawTag.indexOf("=");
+        if (separatorIndex === -1) {
+          acc[rawTag] = "";
+          return acc;
+        }
+
+        const key = rawTag.slice(0, separatorIndex);
+        const value = rawTag.slice(separatorIndex + 1);
+        acc[key] = value;
+        return acc;
+      }, {});
+
+    return {
+      tags,
+      message: line.slice(firstSpaceIndex + 1),
+    };
   }
 
   private bufferMessage(event: any) {

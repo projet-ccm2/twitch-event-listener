@@ -101,8 +101,10 @@ describe("IrcService message buffering", () => {
     // Inject fake ws only to satisfy potential usage
     (svc as any).ws = { readyState: 1, send: jest.fn(), close: jest.fn() };
 
-    // Simulate incoming PRIVMSG
-    (svc as any).handleMessage(":user!u@h PRIVMSG #chan :hello world\r\n");
+    // Simulate incoming tagged PRIVMSG
+    (svc as any).handleMessage(
+      "@room-id=123;user-id=456 :user!u@h PRIVMSG #chan :hello world\r\n",
+    );
 
     // Not flushed immediately
     expect(handleBatchMock).not.toHaveBeenCalled();
@@ -112,6 +114,39 @@ describe("IrcService message buffering", () => {
     expect(Array.isArray(batch)).toBe(true);
     expect(batch.length).toBe(1);
     expect(batch[0].payload.message).toBe("hello world");
+    expect(batch[0].channelId).toBe("123");
+    expect(batch[0].userId).toBe("456");
+    svc.shutdown();
+  });
+
+  test("falls back to configured channelId when IRC tags are missing", () => {
+    const original = [...config.channels];
+    config.channels = [
+      {
+        twitchUserId: "42",
+        login: "chan",
+        scopes: [],
+        listenEventSub: false,
+        listenChatIrc: true,
+        eventSubTopics: [],
+      },
+    ] as any;
+
+    const svc = new IrcService();
+    const bufferSpy = jest.spyOn(svc as any, "bufferMessage");
+
+    (svc as any).handleMessage(":user!u@h PRIVMSG #chan :hello world\r\n");
+
+    expect(bufferSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channelId: "42",
+        channelLogin: "chan",
+        userId: undefined,
+        userLogin: "user",
+      }),
+    );
+
+    config.channels = original;
     svc.shutdown();
   });
 });
@@ -187,6 +222,7 @@ describe("IrcService connection and handling", () => {
 
     openHandler();
 
+    expect(fakeWs.send).toHaveBeenCalledWith("CAP REQ :twitch.tv/tags");
     expect(fakeWs.send).toHaveBeenCalledWith(expect.stringContaining("PASS"));
     expect(fakeWs.send).toHaveBeenCalledWith(expect.stringContaining("NICK"));
     expect(updateSpy).toHaveBeenCalled();
