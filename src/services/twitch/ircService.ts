@@ -73,6 +73,17 @@ export class IrcService {
     });
   }
 
+  public sendMessage(channel: string, message: string): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error(`IRC not connected, cannot send message to #${channel}`);
+    }
+    if (!this.joinedChannels.has(channel)) {
+      throw new Error(`Not joined to channel #${channel}`);
+    }
+    this.ws.send(`PRIVMSG #${channel} :${message}`);
+    logger.debug(`Sent message to #${channel}`, { service: "twitch-irc" });
+  }
+
   public updateSubscriptions() {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       return;

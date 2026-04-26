@@ -13,11 +13,24 @@ jest.mock("../../config/environment", () => ({
     port: 3000,
     useMock: false,
     cors: { allowedOrigins: ["*"] },
+    chatApiKey: "",
+    twitch: {
+      clientId: "",
+      clientSecret: "",
+      webhookSecret: "",
+      publicCallback: "",
+      ircNick: "justinfan12345",
+      ircPassword: "SCHMOOPIIE",
+      ircRefreshToken: "",
+      ircClientId: "",
+      ircClientSecret: "",
+    },
   },
 }));
 
 jest.mock("../../routes/metricsRoutes", () => jest.fn());
 jest.mock("../../routes/webhooksRoutes", () => jest.fn());
+jest.mock("../../routes/chatRoutes", () => jest.fn());
 jest.mock("../../services/twitch/mockTwitchService", () => ({
   TwitchService: jest.fn().mockImplementation(() => ({
     start: jest.fn(),
@@ -37,6 +50,12 @@ jest.mock("../../services/twitch/ircService", () => ({
 jest.mock("../../services/schedulerService", () => ({
   SchedulerService: jest.fn().mockImplementation(() => ({
     start: jest.fn(),
+  })),
+}));
+jest.mock("../../services/tokenRefreshService", () => ({
+  TokenRefreshService: jest.fn().mockImplementation(() => ({
+    start: jest.fn().mockResolvedValue(undefined),
+    stop: jest.fn(),
   })),
 }));
 

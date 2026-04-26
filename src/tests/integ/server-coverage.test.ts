@@ -72,11 +72,24 @@ describe("Server Coverage Tests", () => {
         port: 3000,
         useMock: false,
         cors: { allowedOrigins: ["*"] },
+        chatApiKey: "",
+        twitch: {
+          clientId: "",
+          clientSecret: "",
+          webhookSecret: "",
+          publicCallback: "",
+          ircNick: "justinfan12345",
+          ircPassword: "SCHMOOPIIE",
+          ircRefreshToken: "",
+          ircClientId: "",
+          ircClientSecret: "",
+        },
       },
     }));
 
     jest.doMock("../../routes/metricsRoutes", () => jest.fn());
     jest.doMock("../../routes/webhooksRoutes", () => jest.fn());
+    jest.doMock("../../routes/chatRoutes", () => jest.fn());
     jest.doMock("../../services/twitch/mockTwitchService", () => ({
       TwitchService: jest.fn().mockImplementation(() => ({
         start: jest.fn(),
@@ -96,6 +109,12 @@ describe("Server Coverage Tests", () => {
     jest.doMock("../../services/schedulerService", () => ({
       SchedulerService: jest.fn().mockImplementation(() => ({
         start: jest.fn(),
+      })),
+    }));
+    jest.doMock("../../services/tokenRefreshService", () => ({
+      TokenRefreshService: jest.fn().mockImplementation(() => ({
+        start: jest.fn().mockResolvedValue(undefined),
+        stop: jest.fn(),
       })),
     }));
 

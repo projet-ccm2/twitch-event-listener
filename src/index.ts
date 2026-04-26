@@ -8,7 +8,9 @@ import { EventSubService } from "./services/twitch/eventsubService";
 import { IrcService } from "./services/twitch/ircService";
 
 import { SchedulerService } from "./services/schedulerService";
+import { TokenRefreshService } from "./services/tokenRefreshService";
 import createWebhookRouter from "./routes/webhooksRoutes";
+import createChatRouter from "./routes/chatRoutes";
 import { loggerMiddleware } from "./middlewares/loggerMiddleware";
 import { logger } from "./utils/logger";
 
@@ -66,6 +68,7 @@ app.get("/health", (_req, res) => {
 const useMock = envConfig.useMock;
 let mockService: TwitchService | undefined;
 let eventSubService: EventSubService | undefined;
+let tokenRefreshService: TokenRefreshService | undefined;
 
 if (useMock) {
   logger.info("Starting in MOCK mode", {
@@ -83,9 +86,10 @@ if (useMock) {
   });
   eventSubService = new EventSubService();
   const ircService = new IrcService();
+  tokenRefreshService = new TokenRefreshService();
 
   if (envConfig.nodeEnv !== "test") {
-    ircService.connect();
+    void tokenRefreshService.start().then(() => ircService.connect());
   }
 
   if (envConfig.nodeEnv !== "local" && envConfig.nodeEnv !== "test") {
@@ -94,6 +98,7 @@ if (useMock) {
   }
 
   app.use(createWebhookRouter(eventSubService));
+  app.use("/chat", createChatRouter(ircService));
 }
 
 if (envConfig.nodeEnv !== "test") {
@@ -128,6 +133,7 @@ if (envConfig.nodeEnv !== "test") {
       if (mockService) {
         mockService.stop();
       }
+      tokenRefreshService?.stop();
       server.close(() => {
         logger.info("Server closed", {
           service: "twitch-notification-handler",
