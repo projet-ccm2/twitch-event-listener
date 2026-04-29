@@ -77,11 +77,28 @@ export class IrcService {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error(`IRC not connected, cannot send message to #${channel}`);
     }
-    if (!this.joinedChannels.has(channel)) {
-      throw new Error(`Not joined to channel #${channel}`);
+    const normalizedChannel = this.normalizeChannelLogin(channel);
+    if (!this.joinedChannels.has(normalizedChannel)) {
+      const configuredChannel = config.channels.find(
+        (candidate) =>
+          this.normalizeChannelLogin(candidate.login) === normalizedChannel &&
+          candidate.listenChatIrc,
+      );
+
+      if (!configuredChannel) {
+        throw new Error(`Not joined to channel #${normalizedChannel}`);
+      }
+
+      this.ws.send(`JOIN #${normalizedChannel}`);
+      this.joinedChannels.add(normalizedChannel);
+      logger.info(`Joined IRC channel #${normalizedChannel} on demand`, {
+        service: "twitch-irc",
+      });
     }
-    this.ws.send(`PRIVMSG #${channel} :${message}`);
-    logger.debug(`Sent message to #${channel}`, { service: "twitch-irc" });
+    this.ws.send(`PRIVMSG #${normalizedChannel} :${message}`);
+    logger.debug(`Sent message to #${normalizedChannel}`, {
+      service: "twitch-irc",
+    });
   }
 
   public updateSubscriptions() {
@@ -91,10 +108,11 @@ export class IrcService {
 
     const channels = config.channels;
     for (const channel of channels) {
-      if (channel.listenChatIrc && !this.joinedChannels.has(channel.login)) {
-        this.ws.send(`JOIN #${channel.login}`);
-        this.joinedChannels.add(channel.login);
-        logger.info(`Joined IRC channel #${channel.login}`, {
+      const normalizedLogin = this.normalizeChannelLogin(channel.login);
+      if (channel.listenChatIrc && !this.joinedChannels.has(normalizedLogin)) {
+        this.ws.send(`JOIN #${normalizedLogin}`);
+        this.joinedChannels.add(normalizedLogin);
+        logger.info(`Joined IRC channel #${normalizedLogin}`, {
           service: "twitch-irc",
         });
       }
@@ -121,7 +139,8 @@ export class IrcService {
           const channel = match[2];
           const messageContent = match[3];
           const channelConfig = config.channels.find(
-            (configuredChannel) => configuredChannel.login === channel,
+            (configuredChannel) =>
+              this.normalizeChannelLogin(configuredChannel.login) === channel,
           );
 
           const event = {
@@ -202,6 +221,11 @@ export class IrcService {
       this.bufferTimer = null;
     }
   }
+
+  private normalizeChannelLogin(channel: string): string {
+    return channel.replace(/^#/, "").trim().toLowerCase();
+  }
+
   public shutdown() {
     if (this.ws) {
       this.ws.close();

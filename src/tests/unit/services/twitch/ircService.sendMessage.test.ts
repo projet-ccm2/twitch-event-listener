@@ -1,4 +1,5 @@
 import { IrcService } from "../../../../services/twitch/ircService";
+import { config } from "../../../../config/config";
 
 describe("IrcService.sendMessage", () => {
   let svc: IrcService;
@@ -24,6 +25,34 @@ describe("IrcService.sendMessage", () => {
     expect(() => svc.sendMessage("unknown", "hello")).toThrow(
       "Not joined to channel #unknown",
     );
+  });
+
+  test("joins configured channel on demand before sending", () => {
+    const originalChannels = [...config.channels];
+    const fakeWs: any = { readyState: 1, send: jest.fn(), close: jest.fn() };
+
+    try {
+      config.channels = [
+        {
+          twitchUserId: "123",
+          login: "MyChannel",
+          scopes: [],
+          listenEventSub: false,
+          listenChatIrc: true,
+          eventSubTopics: [],
+        },
+      ] as any;
+      (svc as any).ws = fakeWs;
+
+      svc.sendMessage("MyChannel", "hello world");
+
+      expect(fakeWs.send).toHaveBeenCalledWith("JOIN #mychannel");
+      expect(fakeWs.send).toHaveBeenCalledWith(
+        "PRIVMSG #mychannel :hello world",
+      );
+    } finally {
+      config.channels = originalChannels;
+    }
   });
 
   test("sends PRIVMSG when connected and channel is joined", () => {
