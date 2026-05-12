@@ -104,6 +104,40 @@ export class EventSubService {
     }
   }
 
+  private async fetchSubscriptionPage(
+    token: string,
+    cursor?: string,
+  ): Promise<{ subscriptions: any[]; nextCursor: string | undefined } | null> {
+    const url = new URL("https://api.twitch.tv/helix/eventsub/subscriptions");
+    if (cursor) {
+      url.searchParams.set("after", cursor);
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        "Client-ID": envConfig.twitch.clientId,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.warn(
+        `Failed to load existing EventSub subscriptions: ${response.status} ${errorText}`,
+        { service: "twitch-eventsub" },
+      );
+      return null;
+    }
+
+    const data = await response.json();
+    const subscriptions = Array.isArray(data.data) ? data.data : [];
+    const nextCursor =
+      typeof data.pagination?.cursor === "string"
+        ? data.pagination.cursor
+        : undefined;
+    return { subscriptions, nextCursor };
+  }
+
   private async loadExistingSubscriptions(
     tokenOverride?: string,
   ): Promise<void> {
@@ -111,7 +145,7 @@ export class EventSubService {
       return;
     }
 
-    const token = tokenOverride || (await this.getAppAccessToken());
+    const token = tokenOverride ?? (await this.getAppAccessToken());
     if (!token) {
       return;
     }
@@ -120,33 +154,12 @@ export class EventSubService {
 
     try {
       do {
-        const url = new URL(
-          "https://api.twitch.tv/helix/eventsub/subscriptions",
-        );
-        if (cursor) {
-          url.searchParams.set("after", cursor);
-        }
-
-        const response = await fetch(url, {
-          headers: {
-            "Client-ID": envConfig.twitch.clientId,
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          logger.warn(
-            `Failed to load existing EventSub subscriptions: ${response.status} ${errorText}`,
-            { service: "twitch-eventsub" },
-          );
+        const page = await this.fetchSubscriptionPage(token, cursor);
+        if (!page) {
           return;
         }
 
-        const data = await response.json();
-        const subscriptions = Array.isArray(data.data) ? data.data : [];
-
-        for (const subscription of subscriptions) {
+        for (const subscription of page.subscriptions) {
           const cacheKey = this.getCacheKeyFromCondition(
             subscription.type,
             subscription.condition,
@@ -156,10 +169,7 @@ export class EventSubService {
           }
         }
 
-        cursor =
-          typeof data.pagination?.cursor === "string"
-            ? data.pagination.cursor
-            : undefined;
+        cursor = page.nextCursor;
       } while (cursor);
 
       this.existingSubscriptionsLoaded = true;

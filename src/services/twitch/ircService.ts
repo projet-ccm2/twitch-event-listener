@@ -74,7 +74,7 @@ export class IrcService {
   }
 
   public sendMessage(channel: string, message: string): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+    if (this.ws?.readyState !== WebSocket.OPEN) {
       throw new Error(`IRC not connected, cannot send message to #${channel}`);
     }
     const normalizedChannel = this.normalizeChannelLogin(channel);
@@ -102,7 +102,7 @@ export class IrcService {
   }
 
   public updateSubscriptions() {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+    if (this.ws?.readyState !== WebSocket.OPEN) {
       return;
     }
 
