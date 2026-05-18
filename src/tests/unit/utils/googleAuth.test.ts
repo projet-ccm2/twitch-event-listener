@@ -86,7 +86,7 @@ describe("googleAuth", () => {
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("500"));
     });
 
-    test("returns null and warns when metadata fetch throws", async () => {
+    test("returns null and warns when metadata fetch throws without cause", async () => {
       process.env.K_SERVICE = "my-service";
       (global.fetch as jest.Mock).mockRejectedValueOnce(
         new Error("network error"),
@@ -99,8 +99,40 @@ describe("googleAuth", () => {
 
       expect(token).toBeNull();
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("metadata server"),
-        expect.anything(),
+        expect.stringContaining("network error"),
+      );
+    });
+
+    test("returns null and warns when metadata fetch throws with cause", async () => {
+      process.env.K_SERVICE = "my-service";
+      const cause = new Error("ETIMEDOUT");
+      (global.fetch as jest.Mock).mockRejectedValueOnce(
+        Object.assign(new Error("fetch failed"), { cause }),
+      );
+      const warnSpy = jest
+        .spyOn(logger, "warn")
+        .mockImplementation(() => undefined as any);
+
+      const token = await getGoogleIdToken("https://example.com");
+
+      expect(token).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("ETIMEDOUT"),
+      );
+    });
+
+    test("returns null and warns when thrown value is not an Error", async () => {
+      process.env.K_SERVICE = "my-service";
+      (global.fetch as jest.Mock).mockRejectedValueOnce("string error");
+      const warnSpy = jest
+        .spyOn(logger, "warn")
+        .mockImplementation(() => undefined as any);
+
+      const token = await getGoogleIdToken("https://example.com");
+
+      expect(token).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("string error"),
       );
     });
   });
