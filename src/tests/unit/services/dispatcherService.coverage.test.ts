@@ -159,6 +159,82 @@ describe("DispatcherService Coverage", () => {
     );
   });
 
+  test("getGoogleIdToken: returns token when K_SERVICE is set and metadata fetch succeeds", async () => {
+    process.env.K_SERVICE = "twitch-event-listener";
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () => "google-id-token",
+      })
+      .mockResolvedValueOnce({ ok: true });
+
+    const debugSpy = jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
+
+    await svc.dispatch({
+      id: "token-test",
+      type: "test",
+      source: "test",
+      timestamp: "now",
+      version: "1",
+      payload: {},
+    });
+
+    const authCall = (global.fetch as jest.Mock).mock.calls[1];
+    expect(authCall[1].headers["Authorization"]).toBe("Bearer google-id-token");
+    expect(debugSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Successfully dispatched"),
+      expect.anything(),
+    );
+
+    delete process.env.K_SERVICE;
+  });
+
+  test("getGoogleIdToken: returns null when metadata fetch returns non-ok", async () => {
+    process.env.K_SERVICE = "twitch-event-listener";
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: false })
+      .mockResolvedValueOnce({ ok: true });
+
+    jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
+
+    await svc.dispatch({
+      id: "no-token-test",
+      type: "test",
+      source: "test",
+      timestamp: "now",
+      version: "1",
+      payload: {},
+    });
+
+    const dispatchCall = (global.fetch as jest.Mock).mock.calls[1];
+    expect(dispatchCall[1].headers["Authorization"]).toBeUndefined();
+
+    delete process.env.K_SERVICE;
+  });
+
+  test("getGoogleIdToken: returns null when metadata fetch throws", async () => {
+    process.env.K_SERVICE = "twitch-event-listener";
+    (global.fetch as jest.Mock)
+      .mockRejectedValueOnce(new Error("metadata unreachable"))
+      .mockResolvedValueOnce({ ok: true });
+
+    jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
+
+    await svc.dispatch({
+      id: "catch-test",
+      type: "test",
+      source: "test",
+      timestamp: "now",
+      version: "1",
+      payload: {},
+    });
+
+    const dispatchCall = (global.fetch as jest.Mock).mock.calls[1];
+    expect(dispatchCall[1].headers["Authorization"]).toBeUndefined();
+
+    delete process.env.K_SERVICE;
+  });
+
   test("final drop guard logs error if async logic hangs or fails silently", async () => {
     // We want to simulate a case where we reach max attempts.
     // The code sets a 0ms timeout as a guard.
