@@ -168,7 +168,9 @@ describe("DispatcherService Coverage", () => {
       })
       .mockResolvedValueOnce({ ok: true });
 
-    const debugSpy = jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
+    const debugSpy = jest
+      .spyOn(logger, "debug")
+      .mockImplementation(() => undefined as any);
 
     await svc.dispatch({
       id: "token-test",
