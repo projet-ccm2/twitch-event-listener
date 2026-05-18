@@ -4,6 +4,13 @@ import { logger } from "../utils/logger";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 const TWITCH_VALIDATE_URL = "https://id.twitch.tv/oauth2/validate";
 
+function formatError(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const cause = (err as any).cause;
+  if (cause) return `${err.message} (cause: ${String(cause)})`;
+  return err.message;
+}
+
 /** Seconds before expiry at which we proactively refresh. */
 const REFRESH_BEFORE_EXPIRY_S = 5 * 60;
 
@@ -95,10 +102,7 @@ export class TokenRefreshService {
     } catch (err) {
       logger.error("Failed to validate token, retrying in 30s", {
         service: "token-refresh",
-        error:
-          err instanceof Error
-            ? `${err.message}${(err as any).cause ? ` (cause: ${String((err as any).cause)})` : ""}`
-            : String(err),
+        error: formatError(err),
       });
       this.scheduleRefresh(RETRY_DELAY_MS);
     }
