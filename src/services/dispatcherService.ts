@@ -2,6 +2,7 @@ import { TwitchEvent } from "../models/event";
 import { logger } from "../utils/logger";
 import { config as envConfig } from "../config/environment";
 import { secureRandomInt } from "../utils/random";
+import { getGoogleIdToken } from "../utils/googleAuth";
 
 export class DispatcherService {
   private readonly dispatcherUrl: string;
@@ -37,31 +38,8 @@ export class DispatcherService {
     }
   }
 
-  private async getGoogleIdToken(): Promise<string | null> {
-    if (!process.env.K_SERVICE) return null;
-    try {
-      const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${encodeURIComponent(this.dispatcherUrl)}`;
-      const res = await fetch(metadataUrl, {
-        headers: { "Metadata-Flavor": "Google" },
-        signal: AbortSignal.timeout(2000),
-      });
-      if (!res.ok) {
-        logger.warn(
-          `Failed to fetch Google ID token from metadata server: ${res.status} ${res.statusText}`,
-        );
-        return null;
-      }
-      return await res.text();
-    } catch (error) {
-      logger.warn("Failed to fetch Google ID token from metadata server", {
-        error,
-      });
-      return null;
-    }
-  }
-
   private async sendRequest(event: TwitchEvent | TwitchEvent[]) {
-    const idToken = await this.getGoogleIdToken();
+    const idToken = await getGoogleIdToken(this.dispatcherUrl);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
