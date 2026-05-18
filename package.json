@@ -45,8 +45,10 @@
     "typescript-eslint": "^8.48.0"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
     "winston": "^3.18.3",
     "ws": "^8.18.3"
   }
