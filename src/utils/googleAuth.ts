@@ -35,8 +35,9 @@ export async function getGoogleIdToken(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const cause = error instanceof Error ? (error as any).cause : undefined;
+    const causeStr = cause ? ` (cause: ${String(cause)})` : "";
     logger.warn(
-      `Failed to fetch Google ID token from metadata server: ${message}${cause ? ` (cause: ${String(cause)})` : ""}`,
+      `Failed to fetch Google ID token from metadata server: ${message}${causeStr}`,
     );
     return null;
   }

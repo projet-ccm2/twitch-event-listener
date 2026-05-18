@@ -50,19 +50,3 @@ jobs:
       TWITCH_IRC_CLIENT_SECRET: ${{ secrets.TWITCH_IRC_CLIENT_SECRET }}
       CHAT_API_KEY: ${{ secrets.INT_CHAT_API_KEY }}
       JWT_SECRET: ${{ secrets.INT_JWT_SECRET }}
-
-  configure-egress-int:
-    name: Set VPC egress to private-ranges-only
-    needs: deploy-int
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    steps:
-      - uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.INT_GCP_SA_KEY }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - run: |
-          gcloud run services update twitch-event-listener-int \
-            --region=europe-west1 \
-            --vpc-egress=private-ranges-only \
-            --project=${{ secrets.INT_GCP_PROJECT_ID }}
