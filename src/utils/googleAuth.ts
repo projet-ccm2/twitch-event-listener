@@ -23,7 +23,7 @@ export async function getGoogleIdToken(
     const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${encodeURIComponent(audience)}`;
     const res = await fetch(metadataUrl, {
       headers: { "Metadata-Flavor": "Google" },
-      signal: AbortSignal.timeout(2000),
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
       logger.warn(
@@ -33,9 +33,11 @@ export async function getGoogleIdToken(
     }
     return await res.text();
   } catch (error) {
-    logger.warn("Failed to fetch Google ID token from metadata server", {
-      error,
-    });
+    const message = error instanceof Error ? error.message : String(error);
+    const cause = error instanceof Error ? (error as any).cause : undefined;
+    logger.warn(
+      `Failed to fetch Google ID token from metadata server: ${message}${cause ? ` (cause: ${String(cause)})` : ""}`,
+    );
     return null;
   }
 }

@@ -100,7 +100,6 @@ describe("googleAuth", () => {
       expect(token).toBeNull();
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining("metadata server"),
-        expect.anything(),
       );
     });
   });
