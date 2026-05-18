@@ -166,6 +166,79 @@ describe("TokenRefreshService", () => {
     });
   });
 
+  describe("formatError (via logged error messages)", () => {
+    test("logs cause when fetch fails with a cause", async () => {
+      envConfig.twitch.ircRefreshToken = REFRESH_TOKEN;
+      envConfig.twitch.ircClientId = "cid";
+      envConfig.twitch.ircClientSecret = "csec";
+      envConfig.twitch.ircPassword = `oauth:${VALID_TOKEN}`;
+
+      const cause = new Error("ENOTFOUND id.twitch.tv");
+      const fetchError = Object.assign(new TypeError("fetch failed"), {
+        cause,
+      });
+      global.fetch = jest.fn().mockRejectedValue(fetchError) as any;
+
+      const errorSpy = jest.spyOn(
+        require("../../../utils/logger").logger,
+        "error",
+      );
+
+      await svc.start();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("retrying"),
+        expect.objectContaining({
+          error: expect.stringContaining("ENOTFOUND"),
+        }),
+      );
+    });
+
+    test("logs plain message when fetch fails without a cause", async () => {
+      envConfig.twitch.ircRefreshToken = REFRESH_TOKEN;
+      envConfig.twitch.ircClientId = "cid";
+      envConfig.twitch.ircClientSecret = "csec";
+      envConfig.twitch.ircPassword = `oauth:${VALID_TOKEN}`;
+
+      global.fetch = jest
+        .fn()
+        .mockRejectedValue(new Error("generic error")) as any;
+
+      const errorSpy = jest.spyOn(
+        require("../../../utils/logger").logger,
+        "error",
+      );
+
+      await svc.start();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("retrying"),
+        expect.objectContaining({ error: "generic error" }),
+      );
+    });
+
+    test("logs string error when thrown value is not an Error", async () => {
+      envConfig.twitch.ircRefreshToken = REFRESH_TOKEN;
+      envConfig.twitch.ircClientId = "cid";
+      envConfig.twitch.ircClientSecret = "csec";
+      envConfig.twitch.ircPassword = `oauth:${VALID_TOKEN}`;
+
+      global.fetch = jest.fn().mockRejectedValue("string error") as any;
+
+      const errorSpy = jest.spyOn(
+        require("../../../utils/logger").logger,
+        "error",
+      );
+
+      await svc.start();
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("retrying"),
+        expect.objectContaining({ error: "string error" }),
+      );
+    });
+  });
+
   describe("stop()", () => {
     test("cancels pending timer", async () => {
       envConfig.twitch.ircRefreshToken = REFRESH_TOKEN;
