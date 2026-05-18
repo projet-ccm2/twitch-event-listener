@@ -29,7 +29,8 @@ export async function authenticatedFetch(
   url: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  const idToken = await getGoogleIdToken(url);
+  const audience = new URL(url).origin;
+  const idToken = await getGoogleIdToken(audience);
   const headers = new Headers(options.headers);
   if (idToken) headers.set("Authorization", `Bearer ${idToken}`);
   return fetch(url, { ...options, headers });
