@@ -48,7 +48,7 @@ export async function authenticatedFetch(
   const idToken = await getGoogleIdToken(audience);
   const vpcToken = generateVpcToken();
   const headers = new Headers(options.headers);
-  if (idToken) headers.set("Authorization", idToken);
+  if (idToken) headers.set("Authorization", `Bearer ${idToken}`);
   if (vpcToken) headers.set("X-VPC-Token", vpcToken);
   return fetch(url, { ...options, headers });
 }
