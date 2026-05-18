@@ -1,8 +1,14 @@
 import { DispatcherService } from "../../../services/dispatcherService";
 import { logger } from "../../../utils/logger";
+import * as googleAuth from "../../../utils/googleAuth";
 
 // Mock global fetch
 global.fetch = jest.fn();
+
+jest.mock("../../../utils/googleAuth", () => ({
+  getGoogleIdToken: jest.fn().mockResolvedValue(null),
+  authenticatedFetch: jest.fn(),
+}));
 
 describe("DispatcherService Coverage", () => {
   let svc: DispatcherService;
@@ -159,16 +165,12 @@ describe("DispatcherService Coverage", () => {
     );
   });
 
-  test("getGoogleIdToken: returns token when K_SERVICE is set and metadata fetch succeeds", async () => {
-    process.env.K_SERVICE = "twitch-event-listener";
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        text: async () => "google-id-token",
-      })
-      .mockResolvedValueOnce({ ok: true });
-
-    const debugSpy = jest
+  test("sendRequest: includes Authorization header when getGoogleIdToken returns a token", async () => {
+    (googleAuth.getGoogleIdToken as jest.Mock).mockResolvedValueOnce(
+      "google-id-token",
+    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
+    jest
       .spyOn(logger, "debug")
       .mockImplementation(() => undefined as any);
 
@@ -181,22 +183,13 @@ describe("DispatcherService Coverage", () => {
       payload: {},
     });
 
-    const authCall = (global.fetch as jest.Mock).mock.calls[1];
-    expect(authCall[1].headers["Authorization"]).toBe("Bearer google-id-token");
-    expect(debugSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Successfully dispatched"),
-      expect.anything(),
-    );
-
-    delete process.env.K_SERVICE;
+    const [, options] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(options.headers["Authorization"]).toBe("Bearer google-id-token");
   });
 
-  test("getGoogleIdToken: returns null when metadata fetch returns non-ok", async () => {
-    process.env.K_SERVICE = "twitch-event-listener";
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({ ok: false })
-      .mockResolvedValueOnce({ ok: true });
-
+  test("sendRequest: omits Authorization header when getGoogleIdToken returns null", async () => {
+    (googleAuth.getGoogleIdToken as jest.Mock).mockResolvedValueOnce(null);
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
     jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
 
     await svc.dispatch({
@@ -208,33 +201,8 @@ describe("DispatcherService Coverage", () => {
       payload: {},
     });
 
-    const dispatchCall = (global.fetch as jest.Mock).mock.calls[1];
-    expect(dispatchCall[1].headers["Authorization"]).toBeUndefined();
-
-    delete process.env.K_SERVICE;
-  });
-
-  test("getGoogleIdToken: returns null when metadata fetch throws", async () => {
-    process.env.K_SERVICE = "twitch-event-listener";
-    (global.fetch as jest.Mock)
-      .mockRejectedValueOnce(new Error("metadata unreachable"))
-      .mockResolvedValueOnce({ ok: true });
-
-    jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
-
-    await svc.dispatch({
-      id: "catch-test",
-      type: "test",
-      source: "test",
-      timestamp: "now",
-      version: "1",
-      payload: {},
-    });
-
-    const dispatchCall = (global.fetch as jest.Mock).mock.calls[1];
-    expect(dispatchCall[1].headers["Authorization"]).toBeUndefined();
-
-    delete process.env.K_SERVICE;
+    const [, options] = (global.fetch as jest.Mock).mock.calls[0];
+    expect(options.headers["Authorization"]).toBeUndefined();
   });
 
   test("final drop guard logs error if async logic hangs or fails silently", async () => {

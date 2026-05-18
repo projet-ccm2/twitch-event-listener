@@ -3,6 +3,7 @@ import { IrcService } from "./twitch/ircService";
 import { config } from "../config/config";
 import { ChannelConfig } from "../models/channel";
 import { logger } from "../utils/logger";
+import { authenticatedFetch } from "../utils/googleAuth";
 
 interface DbUser {
   id: string;
@@ -49,7 +50,7 @@ export class SchedulerService {
         : `${config.dbServiceUrl}/`;
       const url = `${baseUrl}users`;
 
-      const response = await fetch(url);
+      const response = await authenticatedFetch(url);
       if (!response.ok) {
         throw new Error(`DB Service returned ${response.status}`);
       }
