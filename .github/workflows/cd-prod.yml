@@ -1,0 +1,46 @@
+name: Deploy to Production
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (e.g., v1.2.3)"
+        required: true
+        type: string
+
+jobs:
+  deploy-prod:
+    name: Deploy to Production
+    uses: projet-ccm2/shared-workflows/.github/workflows/nodejs-cd.yml@main
+    if: github.event_name != 'pull_request'
+    with:
+      docker-image-name: twitch-event-listener-api-prod
+      docker-tag: ${{ github.event.inputs.image-tag || format('dev-{0}', github.sha) }}
+      artifact-registry-repository: "twitch-event-listener-docker-prod"
+      environment: production
+      cloud-run-service-name: twitch-event-listener-prod
+      cloud-run-min-instances: "1"
+      cloud-run-max-instances: "1"
+      service_type: "back_prive"
+      required_env_vars: GCP_SA_KEY,GCP_PROJECT_ID,TWITCH_CLIENT_ID,USE_MOCK,DISPATCHER_URL,DB_SERVICE_URL,SYNC_INTERVAL_MS,ALLOWED_ORIGINS,TWITCH_APP_ACCESS_TOKEN,TWITCH_WEBHOOK_SECRET,PUBLIC_EVENTSUB_CALLBACK,TWITCH_IRC_NICK,TWITCH_IRC_PASSWORD,TWITCH_IRC_REFRESH_TOKEN,TWITCH_IRC_CLIENT_ID,TWITCH_IRC_CLIENT_SECRET,CHAT_API_KEY
+
+    secrets:
+      GCP_SA_KEY: ${{ secrets.PROD_GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.PROD_GCP_PROJECT_ID }}
+      TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+      USE_MOCK: ${{ secrets.USE_MOCK }}
+      DISPATCHER_URL: ${{ secrets.PROD_DISPATCHER_URL }}
+      DB_SERVICE_URL: ${{ secrets.PROD_DB_SERVICE_URL }}
+      SYNC_INTERVAL_MS: ${{ secrets.SYNC_INTERVAL_MS }}
+      ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+      TWITCH_APP_ACCESS_TOKEN: ${{ secrets.TWITCH_APP_ACCESS_TOKEN }}
+      TWITCH_WEBHOOK_SECRET: ${{ secrets.TWITCH_WEBHOOK_SECRET }}
+      PUBLIC_EVENTSUB_CALLBACK: ${{ secrets.PROD_PUBLIC_EVENTSUB_CALLBACK }}
+      TWITCH_IRC_NICK: ${{ secrets.TWITCH_IRC_NICK }}
+      TWITCH_IRC_PASSWORD: ${{ secrets.TWITCH_IRC_PASSWORD }}
+      TWITCH_IRC_REFRESH_TOKEN: ${{ secrets.TWITCH_IRC_REFRESH_TOKEN }}
+      TWITCH_IRC_CLIENT_ID: ${{ secrets.TWITCH_IRC_CLIENT_ID }}
+      TWITCH_IRC_CLIENT_SECRET: ${{ secrets.TWITCH_IRC_CLIENT_SECRET }}
+      CHAT_API_KEY: ${{ secrets.PROD_CHAT_API_KEY }}
