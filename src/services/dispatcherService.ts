@@ -37,10 +37,28 @@ export class DispatcherService {
     }
   }
 
+  private async getGoogleIdToken(): Promise<string | null> {
+    if (envConfig.nodeEnv === "local") return null;
+    try {
+      const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${this.dispatcherUrl}`;
+      const res = await fetch(metadataUrl, {
+        headers: { "Metadata-Flavor": "Google" },
+      });
+      if (!res.ok) return null;
+      return await res.text();
+    } catch {
+      return null;
+    }
+  }
+
   private async sendRequest(event: TwitchEvent | TwitchEvent[]) {
+    const idToken = await this.getGoogleIdToken();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+
     const response = await fetch(this.dispatcherUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(event),
     });
 
