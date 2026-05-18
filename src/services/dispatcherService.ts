@@ -38,7 +38,7 @@ export class DispatcherService {
   }
 
   private async getGoogleIdToken(): Promise<string | null> {
-    if (envConfig.nodeEnv === "local") return null;
+    if (!process.env.K_SERVICE) return null;
     try {
       const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${this.dispatcherUrl}`;
       const res = await fetch(metadataUrl, {
@@ -53,7 +53,9 @@ export class DispatcherService {
 
   private async sendRequest(event: TwitchEvent | TwitchEvent[]) {
     const idToken = await this.getGoogleIdToken();
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
     if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
 
     const response = await fetch(this.dispatcherUrl, {
