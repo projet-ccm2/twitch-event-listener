@@ -1,4 +1,19 @@
+import jwt from "jsonwebtoken";
 import { logger } from "./logger";
+
+const VPC_AUDIENCE = "vpc-db-gateway";
+
+export function generateVpcToken(): string | null {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return null;
+  return jwt.sign(
+    { aud: VPC_AUDIENCE, iat: Math.floor(Date.now() / 1000) },
+    secret,
+    {
+      expiresIn: 3600,
+    },
+  );
+}
 
 export async function getGoogleIdToken(
   audience: string,
@@ -31,7 +46,9 @@ export async function authenticatedFetch(
 ): Promise<Response> {
   const audience = new URL(url).origin;
   const idToken = await getGoogleIdToken(audience);
+  const vpcToken = generateVpcToken();
   const headers = new Headers(options.headers);
-  if (idToken) headers.set("Authorization", `Bearer ${idToken}`);
+  if (idToken) headers.set("Authorization", idToken);
+  if (vpcToken) headers.set("X-VPC-Token", vpcToken);
   return fetch(url, { ...options, headers });
 }

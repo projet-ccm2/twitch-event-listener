@@ -1,17 +1,21 @@
 import {
   getGoogleIdToken,
   authenticatedFetch,
+  generateVpcToken,
 } from "../../../utils/googleAuth";
 import { logger } from "../../../utils/logger";
+import jwt from "jsonwebtoken";
 
 global.fetch = jest.fn();
 
 describe("googleAuth", () => {
   const originalKService = process.env.K_SERVICE;
+  const originalJwtSecret = process.env.JWT_SECRET;
 
   beforeEach(() => {
     jest.clearAllMocks();
     delete process.env.K_SERVICE;
+    delete process.env.JWT_SECRET;
   });
 
   afterEach(() => {
@@ -20,6 +24,25 @@ describe("googleAuth", () => {
     } else {
       delete process.env.K_SERVICE;
     }
+    if (originalJwtSecret !== undefined) {
+      process.env.JWT_SECRET = originalJwtSecret;
+    } else {
+      delete process.env.JWT_SECRET;
+    }
+  });
+
+  describe("generateVpcToken", () => {
+    test("returns null when JWT_SECRET is not set", () => {
+      expect(generateVpcToken()).toBeNull();
+    });
+
+    test("returns a signed JWT with vpc-db-gateway audience", () => {
+      process.env.JWT_SECRET = "test-secret";
+      const token = generateVpcToken();
+      expect(token).not.toBeNull();
+      const decoded = jwt.verify(token!, "test-secret") as jwt.JwtPayload;
+      expect(decoded.aud).toBe("vpc-db-gateway");
+    });
   });
 
   describe("getGoogleIdToken", () => {
@@ -83,8 +106,9 @@ describe("googleAuth", () => {
   });
 
   describe("authenticatedFetch", () => {
-    test("adds Authorization header when token is available", async () => {
+    test("adds Authorization and X-VPC-Token headers when tokens are available", async () => {
       process.env.K_SERVICE = "my-service";
+      process.env.JWT_SECRET = "test-secret";
       (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -100,12 +124,11 @@ describe("googleAuth", () => {
 
       const [url, options] = (global.fetch as jest.Mock).mock.calls[1];
       expect(url).toBe("https://example.com/api/users");
-      expect(options.headers.get("Authorization")).toBe(
-        "Bearer id-token-value",
-      );
+      expect(options.headers.get("Authorization")).toBe("id-token-value");
+      expect(options.headers.get("X-VPC-Token")).not.toBeNull();
     });
 
-    test("does not add Authorization header when no token", async () => {
+    test("does not add Authorization or X-VPC-Token when no tokens", async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -116,10 +139,12 @@ describe("googleAuth", () => {
       const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
       expect(url).toBe("https://example.com/api");
       expect(options.headers.get("Authorization")).toBeNull();
+      expect(options.headers.get("X-VPC-Token")).toBeNull();
     });
 
-    test("merges existing headers with Authorization", async () => {
+    test("merges existing headers with auth headers", async () => {
       process.env.K_SERVICE = "my-service";
+      process.env.JWT_SECRET = "test-secret";
       (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -134,7 +159,8 @@ describe("googleAuth", () => {
 
       const [, options] = (global.fetch as jest.Mock).mock.calls[1];
       expect(options.headers.get("Content-Type")).toBe("application/json");
-      expect(options.headers.get("Authorization")).toBe("Bearer token-abc");
+      expect(options.headers.get("Authorization")).toBe("token-abc");
+      expect(options.headers.get("X-VPC-Token")).not.toBeNull();
     });
   });
 });
