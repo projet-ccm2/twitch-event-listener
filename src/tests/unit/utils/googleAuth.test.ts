@@ -124,7 +124,9 @@ describe("googleAuth", () => {
 
       const [url, options] = (global.fetch as jest.Mock).mock.calls[1];
       expect(url).toBe("https://example.com/api/users");
-      expect(options.headers.get("Authorization")).toBe("id-token-value");
+      expect(options.headers.get("Authorization")).toBe(
+        "Bearer id-token-value",
+      );
       expect(options.headers.get("X-VPC-Token")).not.toBeNull();
     });
 
@@ -159,7 +161,7 @@ describe("googleAuth", () => {
 
       const [, options] = (global.fetch as jest.Mock).mock.calls[1];
       expect(options.headers.get("Content-Type")).toBe("application/json");
-      expect(options.headers.get("Authorization")).toBe("token-abc");
+      expect(options.headers.get("Authorization")).toBe("Bearer token-abc");
       expect(options.headers.get("X-VPC-Token")).not.toBeNull();
     });
   });
