@@ -95,9 +95,7 @@ describe("googleAuth", () => {
       await authenticatedFetch("https://example.com/api/users");
 
       const [metadataUrl] = (global.fetch as jest.Mock).mock.calls[0];
-      expect(metadataUrl).toContain(
-        encodeURIComponent("https://example.com"),
-      );
+      expect(metadataUrl).toContain(encodeURIComponent("https://example.com"));
       expect(metadataUrl).not.toContain(encodeURIComponent("/api/users"));
 
       const [url, options] = (global.fetch as jest.Mock).mock.calls[1];
