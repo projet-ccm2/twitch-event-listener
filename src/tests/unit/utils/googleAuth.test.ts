@@ -1,4 +1,7 @@
-import { getGoogleIdToken, authenticatedFetch } from "../../../utils/googleAuth";
+import {
+  getGoogleIdToken,
+  authenticatedFetch,
+} from "../../../utils/googleAuth";
 import { logger } from "../../../utils/logger";
 
 global.fetch = jest.fn();
@@ -49,14 +52,14 @@ describe("googleAuth", () => {
         status: 500,
         statusText: "Internal Server Error",
       });
-      const warnSpy = jest.spyOn(logger, "warn").mockImplementation(() => undefined as any);
+      const warnSpy = jest
+        .spyOn(logger, "warn")
+        .mockImplementation(() => undefined as any);
 
       const token = await getGoogleIdToken("https://example.com");
 
       expect(token).toBeNull();
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("500"),
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("500"));
     });
 
     test("returns null and warns when metadata fetch throws", async () => {
@@ -64,7 +67,9 @@ describe("googleAuth", () => {
       (global.fetch as jest.Mock).mockRejectedValueOnce(
         new Error("network error"),
       );
-      const warnSpy = jest.spyOn(logger, "warn").mockImplementation(() => undefined as any);
+      const warnSpy = jest
+        .spyOn(logger, "warn")
+        .mockImplementation(() => undefined as any);
 
       const token = await getGoogleIdToken("https://example.com");
 

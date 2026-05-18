@@ -170,9 +170,7 @@ describe("DispatcherService Coverage", () => {
       "google-id-token",
     );
     (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
-    jest
-      .spyOn(logger, "debug")
-      .mockImplementation(() => undefined as any);
+    jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
 
     await svc.dispatch({
       id: "token-test",
