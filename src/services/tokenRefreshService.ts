@@ -97,7 +97,7 @@ export class TokenRefreshService {
         service: "token-refresh",
         error:
           err instanceof Error
-            ? `${err.message}${err.cause ? ` (cause: ${String(err.cause)})` : ""}`
+            ? `${err.message}${(err as any).cause ? ` (cause: ${String((err as any).cause)})` : ""}`
             : String(err),
       });
       this.scheduleRefresh(RETRY_DELAY_MS);
@@ -157,7 +157,7 @@ export class TokenRefreshService {
           service: "token-refresh",
           error:
             err instanceof Error
-              ? `${err.message}${err.cause ? ` (cause: ${String(err.cause)})` : ""}`
+              ? `${err.message}${(err as any).cause ? ` (cause: ${String((err as any).cause)})` : ""}`
               : String(err),
         },
       );
