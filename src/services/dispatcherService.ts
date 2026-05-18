@@ -39,7 +39,7 @@ export class DispatcherService {
   }
 
   private async sendRequest(event: TwitchEvent | TwitchEvent[]) {
-    const idToken = await getGoogleIdToken(this.dispatcherUrl);
+    const idToken = await getGoogleIdToken(new URL(this.dispatcherUrl).origin);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };

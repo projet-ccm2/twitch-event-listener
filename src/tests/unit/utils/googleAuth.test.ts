@@ -42,6 +42,7 @@ describe("googleAuth", () => {
       const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
       expect(url).toContain("metadata.google.internal");
       expect(url).toContain(encodeURIComponent("https://example.com"));
+      expect(url).not.toContain(encodeURIComponent("/path"));
       expect(options.headers["Metadata-Flavor"]).toBe("Google");
     });
 
@@ -91,10 +92,16 @@ describe("googleAuth", () => {
         })
         .mockResolvedValueOnce({ ok: true, status: 200 });
 
-      await authenticatedFetch("https://example.com/api");
+      await authenticatedFetch("https://example.com/api/users");
+
+      const [metadataUrl] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(metadataUrl).toContain(
+        encodeURIComponent("https://example.com"),
+      );
+      expect(metadataUrl).not.toContain(encodeURIComponent("/api/users"));
 
       const [url, options] = (global.fetch as jest.Mock).mock.calls[1];
-      expect(url).toBe("https://example.com/api");
+      expect(url).toBe("https://example.com/api/users");
       expect(options.headers.get("Authorization")).toBe(
         "Bearer id-token-value",
       );
