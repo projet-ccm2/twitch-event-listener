@@ -95,7 +95,10 @@ export class TokenRefreshService {
     } catch (err) {
       logger.error("Failed to validate token, retrying in 30s", {
         service: "token-refresh",
-        error: err instanceof Error ? `${err.message}${err.cause ? ` (cause: ${String(err.cause)})` : ""}` : String(err),
+        error:
+          err instanceof Error
+            ? `${err.message}${err.cause ? ` (cause: ${String(err.cause)})` : ""}`
+            : String(err),
       });
       this.scheduleRefresh(RETRY_DELAY_MS);
     }
@@ -152,7 +155,10 @@ export class TokenRefreshService {
         `Token refresh failed, retrying in ${RETRY_DELAY_MS / 1000}s`,
         {
           service: "token-refresh",
-          error: err instanceof Error ? `${err.message}${err.cause ? ` (cause: ${String(err.cause)})` : ""}` : String(err),
+          error:
+            err instanceof Error
+              ? `${err.message}${err.cause ? ` (cause: ${String(err.cause)})` : ""}`
+              : String(err),
         },
       );
       this.scheduleRefresh(RETRY_DELAY_MS);
