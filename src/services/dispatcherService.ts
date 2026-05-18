@@ -40,9 +40,10 @@ export class DispatcherService {
   private async getGoogleIdToken(): Promise<string | null> {
     if (!process.env.K_SERVICE) return null;
     try {
-      const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${this.dispatcherUrl}`;
+      const metadataUrl = `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity?audience=${encodeURIComponent(this.dispatcherUrl)}`;
       const res = await fetch(metadataUrl, {
         headers: { "Metadata-Flavor": "Google" },
+        signal: AbortSignal.timeout(2000),
       });
       if (!res.ok) {
         logger.warn(
