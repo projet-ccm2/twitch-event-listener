@@ -44,9 +44,17 @@ export class DispatcherService {
       const res = await fetch(metadataUrl, {
         headers: { "Metadata-Flavor": "Google" },
       });
-      if (!res.ok) return null;
+      if (!res.ok) {
+        logger.warn(
+          `Failed to fetch Google ID token from metadata server: ${res.status} ${res.statusText}`,
+        );
+        return null;
+      }
       return await res.text();
-    } catch {
+    } catch (error) {
+      logger.warn("Failed to fetch Google ID token from metadata server", {
+        error,
+      });
       return null;
     }
   }
