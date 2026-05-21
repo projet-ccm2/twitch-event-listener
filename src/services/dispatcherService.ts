@@ -2,7 +2,7 @@ import { TwitchEvent } from "../models/event";
 import { logger } from "../utils/logger";
 import { config as envConfig } from "../config/environment";
 import { secureRandomInt } from "../utils/random";
-import { getGoogleIdToken } from "../utils/googleAuth";
+import { authenticatedFetch } from "../utils/googleAuth";
 
 export class DispatcherService {
   private readonly dispatcherUrl: string;
@@ -39,15 +39,9 @@ export class DispatcherService {
   }
 
   private async sendRequest(event: TwitchEvent | TwitchEvent[]) {
-    const idToken = await getGoogleIdToken(new URL(this.dispatcherUrl).origin);
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
-
-    const response = await fetch(this.dispatcherUrl, {
+    const response = await authenticatedFetch(this.dispatcherUrl, {
       method: "POST",
-      headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(event),
     });
 
