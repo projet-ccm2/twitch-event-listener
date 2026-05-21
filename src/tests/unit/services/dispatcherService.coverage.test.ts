@@ -7,7 +7,11 @@ global.fetch = jest.fn();
 
 jest.mock("../../../utils/googleAuth", () => ({
   getGoogleIdToken: jest.fn().mockResolvedValue(null),
-  authenticatedFetch: jest.fn(),
+  authenticatedFetch: jest
+    .fn()
+    .mockImplementation((url: string, options?: RequestInit) =>
+      (global.fetch as jest.Mock)(url, options),
+    ),
 }));
 
 describe("DispatcherService Coverage", () => {
@@ -165,28 +169,31 @@ describe("DispatcherService Coverage", () => {
     );
   });
 
-  test("sendRequest: includes Authorization header when getGoogleIdToken returns a token", async () => {
-    (googleAuth.getGoogleIdToken as jest.Mock).mockResolvedValueOnce(
-      "google-id-token",
-    );
+  test("sendRequest: calls authenticatedFetch with correct url and payload", async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
     jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
 
-    await svc.dispatch({
+    const event = {
       id: "token-test",
       type: "test",
       source: "test",
       timestamp: "now",
       version: "1",
       payload: {},
-    });
+    };
+    await svc.dispatch(event);
 
-    const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers["Authorization"]).toBe("Bearer google-id-token");
+    expect(googleAuth.authenticatedFetch).toHaveBeenCalledWith(
+      "http://test-url",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+      }),
+    );
   });
 
-  test("sendRequest: omits Authorization header when getGoogleIdToken returns null", async () => {
-    (googleAuth.getGoogleIdToken as jest.Mock).mockResolvedValueOnce(null);
+  test("sendRequest: delegates auth header logic to authenticatedFetch", async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
     jest.spyOn(logger, "debug").mockImplementation(() => undefined as any);
 
@@ -199,8 +206,7 @@ describe("DispatcherService Coverage", () => {
       payload: {},
     });
 
-    const [, options] = (global.fetch as jest.Mock).mock.calls[0];
-    expect(options.headers["Authorization"]).toBeUndefined();
+    expect(googleAuth.authenticatedFetch).toHaveBeenCalledTimes(1);
   });
 
   test("final drop guard logs error if async logic hangs or fails silently", async () => {

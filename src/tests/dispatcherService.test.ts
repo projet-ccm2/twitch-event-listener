@@ -66,7 +66,7 @@ describe("DispatcherService", () => {
     const [url, options] = fetchMock.mock.calls[0];
     expect(url).toBe("http://api/dispatch");
     expect(options.method).toBe("POST");
-    expect(options.headers["Content-Type"]).toBe("application/json");
+    expect(options.headers.get("Content-Type")).toBe("application/json");
     expect(options.body).toBe(JSON.stringify(evt));
   });
 
